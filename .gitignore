@@ -6,6 +6,8 @@
 # Node artifact files
 node_modules/
 dist/
+data/
+venv_winwork/
 
 # Compiled Java class files
 *.class
@@ -47,4 +49,5 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
+config.json
 
