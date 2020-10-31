@@ -278,9 +278,9 @@ def check_status(path, idx):
 # Setting path for Windows and Mac
 path = []
 if platform.system() == 'Windows':
-    path = 'D:/OneDrive - Universidad de Valladolid/Personal/Scripts Utiles/WebMonitor'
+    path = 'D:/OneDrive - Universidad de Valladolid/Personal/Scripts Utiles/web_monitor'
 elif platform.system() == 'Darwin':
-    path = '/Users/Vic/OneDrive - Universidad de Valladolid/Personal/Scripts Utiles/WebMonitor'
+    path = '/Users/Vic/OneDrive - Universidad de Valladolid/Personal/Scripts Utiles/web_monitor'
 
 # Initial json load and info storing
 json_info = open(path + '/config.json')
