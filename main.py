@@ -12,21 +12,24 @@ import numpy as np
 import os
 from xmldiff import main, formatting
 import lxml.etree
+from random import uniform
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
 
 class CustomThread(threading.Thread):
 
-    def __init__(self, path, idx):
+    def __init__(self, path, name):
         threading.Thread.__init__(self)
         self.path = path
-        self.idx = idx
+        self.name = name
         self.stop = False
 
     def run(self):
         while not self.stop:
-            check_status(self.path, self.idx)
+            check_status(self.path, self.name)
 
 
 # ---------------------------------- FUNCTION DEFINITION FOR FORMATTING THE DIFFERENCES ------------------------------ #
@@ -216,60 +219,121 @@ def format_differences(old, new, link):
 # ---------------------------------- FUNCTION DEFINITION FOR CHECKING THE CHANGES ------------------------------------ #
 
 
-def check_status(path, idx):
+def check_status(path, name):
     # Json load and info storing
     json_info = open(path + '/config.json')
     json_data = json.load(json_info)
     json_info.close()
-    website = json_data["websites"][idx]
+    websites = json_data["websites"]
+    websites_names = [website['name'] for website in websites]
+    idx = websites_names.index(name)
+    website = websites[idx]
     email = website["email"]
+    counter_fail = 0
 
-    # Retrieving website
-    html = urllib.request.urlopen(website["url"]).read()
+    # Try to retrieve the website. If fails, wait 60 sec and try again. If success, break the infinite loop
+    while True:
+        try:
+            # Retrieving website
+            if not website["javascript"]:
+                user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+                headers = {'User-Agent': user_agent}
+
+                request = urllib.request.Request(website["url"], None, headers)  # The assembled request
+                html = urllib.request.urlopen(request).read()
+
+            else:
+                options = Options()
+                options.headless = True
+                driver = webdriver.Firefox(options=options)
+
+                driver.get(website["url"])
+                time.sleep(10)
+                html = driver.page_source
+                driver.close()
+
+        except:
+            time.sleep(60)
+            continue
+        else:
+            break
 
     # Getting the desired element...
     if website["attrib_key"] != 'all':  # One element, defined by "element", "attrib-key", and "attrib_value"
         soup = BeautifulSoup(html, features="lxml")
         element = soup.find(website["element"], {website["attrib_key"]: website["attrib_value"]})
-        for jj in range(website["parent_number"]):  # Get parent from element (if desired)
-            element = element.parent
+        if element is not None and element != "None":
+            for jj in range(website["parent_number"]):  # Get parent from element (if desired)
+                element = element.parent
+        if website["only_text"]:  # If only check the text is selected
+            element = element.get_text()
     else:  # Or the full HTML
         soup = BeautifulSoup(html, features="lxml")
         element = soup.find('html')
-    element = str(element)  # Turn element into a string to compare ir easier with the previous version
+
+    element = str(element)  # Turn element into a string to compare it easier with the previous version
 
     # Load the previous web page versions stored
-    files = list(pathlib.Path('data/').glob('*.html'))
-    files_name = [file.stem for file in files]
-    if not website["name"] in files_name:  # If the HTML file is not already stored, save it
-        save_html = io.open("data/" + website["name"] + '.html', "w", encoding="utf-8")
-        save_html.write(element)
-        save_html.close()
-        print("No registers for " + website["name"] + ". Register created\n")
-    else:  # Else, read the file
-        read_html = io.open("data/" + website["name"] + ".html", "r", encoding="utf-8")
-        orig = read_html.read()
-        read_html.close()
-        # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
-        if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
-            # not equal, notificate via console and email
-            save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
+    if element is not None and element != "None":
+        counter_fail = 0
+        files = list(pathlib.Path('data/').glob('*.html'))
+        files_name = [file.stem for file in files]
+        if not website["name"] in files_name:  # If the HTML file is not already stored, save it
+            save_html = io.open("data/" + website["name"] + '.html', "w", encoding="utf-8")
             save_html.write(element)
             save_html.close()
-            # Format the differences (old in red, new in green)
-            email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
-                                            element.replace('\n', '').replace('\r', ''), website["url"])
-            notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-            print(website["name"] + ' has changed!!!\n')
-        else:  # Else, just notificate via console
-            print('No changes for ' + website["name"] + '...\n')
+            print("No registers for '" + website["name"] + "'. Register created\n")
+        else:  # Else, read the file
+            read_html = io.open("data/" + website["name"] + ".html", "r", encoding="utf-8")
+            orig = read_html.read()
+            read_html.close()
+            # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
+            if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
+                # not equal, notificate via console and email
+                save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
+                save_html.write(element)
+                save_html.close()
+                # Format the differences (old in red, new in green)
+                if website["compose_body"]:
+                    email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
+                                                    element.replace('\n', '').replace('\r', ''), website["url"])
+                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+                else:
+                    email_body = """\
+                            <html>
+                                <head>
+                                    <meta http-equiv="Content-Type"
+                                          content="text/html; charset=utf-8" />
+                                    <style type="text/css">
+                                        .diff-insert{background-color:#82F67C}
+                                        .diff-del{background-color:#FF6666}
+                                        .diff-insert-formatting{background-color:#82F67C}
+                                        .diff-delete-formatting{background-color:#FF6666}
+                                    </style>
+                                </head>
+                                <body>
+                                    <a href='""" + website["url"] + """'>Visit web page</a>
+                                </body>
+                            </html>
+                    """
+                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+
+                print("'" + website["name"] + "' has changed!!!\n")
+                time.sleep(300)
+            else:  # Else, just notificate via console
+                print("No changes for '" + website["name"] + "'\n")
+    else:
+        counter_fail += 1
+        if counter_fail == 10:
+            notify_me.notify_me(email, website["name"] + ' is broken :(', '', 'html')  # Send the email
+
+        print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
 
     # Wait the desired time
     time.sleep(website["refresh_interval"])
 
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
-
 
 # Setting path for Windows and Mac
 path = []
@@ -291,10 +355,11 @@ print("Starting the web scrapping application: checking {} websites\n".format(su
                                                                                    websites])))
 for idx in range(len(websites)):
     if websites[idx]["active"]:  # If field active is true... Start the monitoring
-        t = CustomThread(path, idx)
+        t = CustomThread(path, websites[idx]["name"])
         t.start()
         thread_pool.append(t)
         thread_pool_names.append(websites[idx]["name"])
+        time.sleep(round(uniform(5, 15), 2)) # Wait a random amount of time (between 5 and 50 seconds) before starting another thread to avoid trying to send two mails at a time
 
 # Infinite loop for adding/removing/activating/deactivating websites
 while True:
@@ -304,35 +369,29 @@ while True:
     json_info.close()
     websites_new_names = [website['name'] for website in websites_new]
 
-    # If a new website is removed... To check this, make the difference between old names and new names. If something
+    # If a website is removed... To check this, make the difference between old names and new names. If something
     # remains, those websites have been removed
     if set(websites_names).difference(websites_new_names) is not None:
-        for name in list(set(websites_names).difference(websites_new_names))[::-1]:  # [::-1] reverse the order of the list
+        for name in list(set(websites_names).difference(websites_new_names))[::-1]:  # [::-1] reverse the order of the
+            # list. Not sure if needed, in previous versions was, but I keep it just in case
             if name in thread_pool_names:  # If the removed website is running, stop it and remove it from the thread pool
                 idx = thread_pool_names.index(name)
                 thread_pool[idx].stop = True
                 del thread_pool[idx]
                 del thread_pool_names[idx]
-            # Update the website index for the already running threads, because a site has been removed, and it will
-            # probably has changed
-            idx_update = websites_names.index(name)
-            for update in websites_names[idx_update + 1:]:  # Only modify the index of the following threads to the one removed
-                if update in thread_pool_names:  # And if the thread is running
-                    idx_update2 = thread_pool_names.index(update)
-                    thread_pool[idx_update2].idx = thread_pool[idx_update2].idx - 1
-            print("Website removed: " + name + "\n")
+            print("Website removed: '" + name + "'\n")
 
     # If a new website is added... To check this, make the difference between new names and old names. If something
     # remains, those websites have been added
     if set(websites_new_names).difference(websites_names) is not None:
-        for name in list(set(websites_new_names).difference(websites_names))[::-1]:  # [::-1] reverse the order of the list
+        for name in list(set(websites_new_names).difference(websites_names))[::-1]:  # [::-1] reverse the order of the
+            # list. Not sure if needed, in previous versions was, but I keep it just in case
             # Start it and add it to the thread pool
-            idx = websites_new_names.index(name)
-            t = CustomThread(path, idx)
+            t = CustomThread(path, name)
             t.start()
             thread_pool.append(t)
             thread_pool_names.append(name)
-            print("New website added: " + name + "\n")
+            print("New website added: '" + name + "'\n")
 
     # If a website is activated/deactivated...
     websites_names_intersection = list(set(websites_names).intersection(websites_new_names))  # Common websites in old and new version
@@ -350,32 +409,32 @@ while True:
             name = websites_names_intersection[idx]
             if websites_new_xor[idx]:  # If now is active (previously was inactive)
                 # Start it and add it to the thread pool
-                idx2 = websites_new_names.index(name)
-                t = CustomThread(path, idx2)
+                t = CustomThread(path, name)
                 t.start()
                 thread_pool.append(t)
                 thread_pool_names.append(name)
-                print("Re-starting web scrapping for " + name + "\n")
+                print("Re-starting web scrapping for '" + name + "'\n")
             else:  # If now is inactive (previously was active)
                 # Stop it and remove it from the thread pool
                 idx2 = thread_pool_names.index(name)
                 thread_pool[idx2].stop = True
                 del thread_pool[idx2]
                 del thread_pool_names[idx2]
-                print("Web scrapping for " + name + " has been stopped. Index " + str(idx2) + "\n")
+                print("Web scrapping for '" + name + "' has been stopped\n")
 
-    # Check if there are stored websites that are not currently been in the monitoring list (neither active nor inactive)...
+    # Check if there are stored websites that are not currently in the monitoring list (neither active nor inactive)...
     files = list(pathlib.Path('data/').glob('*.html'))
     for file in files:
-        if file.stem not in websites_new_names:  # If so, remove the files. Field "stem" is the name without the suffix
+        if file.stem not in thread_pool_names:  # If so, remove the files. Field "stem" is the name without the suffix
             # (.html in this case)
-            print("Removing old files for " + file.stem)
+            print("Removing file of '" + file.stem + "'\n")
             os.remove(file)
 
     # Update variables for the next iteration
     websites_names = websites_new_names
     websites = websites_new
 
-    # Run this function every 5000 s
-    print("Checking changes in config.json...\n")
-    time.sleep(5000)
+    # Run this function every 900 s. NOTE: This is not the refreshing time for each site (that is indicated in
+    # config.json). This indicates how often config.json is loaded looking for changes
+    # print("Checking changes in the configuration file")
+    time.sleep(300)
