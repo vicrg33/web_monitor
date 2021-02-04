@@ -7,7 +7,7 @@
 node_modules/
 dist/
 data/
-venv_winwork/
+venv/
 
 # Compiled Java class files
 *.class
