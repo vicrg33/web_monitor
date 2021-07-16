@@ -5,13 +5,13 @@
      1) Go to the website you want to track, 
      2) identify visually the element you want to track, 
      3) inspect it (with Google Chrome right click+inspect element), 
-     4) seek for the concrete element you want to track, and extract the "element", "attlib_key" and "attrib_value" of the element you want to track 
+     4) seek for the concrete element you want to track, and extract the "element", "attrib_key" and "attrib_value" of the element you want to track 
  
  
 In the json file...
 * **"url"**: url to be checked
 * **"element"**: element type to be checked
-* **"attrib_key"**: attribute key that identifies unequivocally "element"
+* **"attrib_key"**: attribute key that identifies unequivocally "element". If you want to get an element by its text use "text"
 * **"attrib_value"**: attribute value that identifies unequivocally "element"
 * **"parent_number"**: if you can't identify unequivocally your element, identify a child, and indicate in this how many child-parent jumps are necessary to reach from the identified element to your desired element
 * **"refresh_interval"**: checking interval (in seconds)
