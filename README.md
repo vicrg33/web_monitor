@@ -1,4 +1,5 @@
 **NOTES**: 
+* **IMPORTANT**: A Firefox installation is required
 * If you want to track in Zara a product with multiple colors, you should use "web_monitor_Zara" script (as a direct link to the specific color is needed). Else you could try to seek the product in the app and use the "Share" function, where you will probably obtain the direct link to the specific color you want to track, thus being to use this script
 * To know the element type and its attribute and key to identify it, you should inspect the element you want to monitor it with a web browser. Example: 
      1) Go to the website you want to track, 

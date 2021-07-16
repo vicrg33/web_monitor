@@ -4,12 +4,12 @@ import time
 from bs4 import BeautifulSoup
 import pathlib
 import dependencies.notify_me as notify_me
-import difflib
 import threading
 import platform
 import io
 import numpy as np
 import os
+import shutil
 from xmldiff import main, formatting
 import lxml.etree
 from random import uniform
@@ -245,7 +245,7 @@ def check_status(path, name):
             else:
                 options = Options()
                 options.headless = True
-                driver = webdriver.Firefox(options=options)
+                driver = webdriver.Firefox(options=options, service_log_path=os.devnull)
 
                 driver.get(website["url"])
                 time.sleep(10)
@@ -261,7 +261,10 @@ def check_status(path, name):
     # Getting the desired element...
     if website["attrib_key"] != 'all':  # One element, defined by "element", "attrib-key", and "attrib_value"
         soup = BeautifulSoup(html, features="lxml")
-        element = soup.find(website["element"], {website["attrib_key"]: website["attrib_value"]})
+        if website["attrib_key"] == "text":
+            element = soup.find(website["element"], text=website["attrib_value"])
+        else:
+            element = soup.find(website["element"], {website["attrib_key"]: website["attrib_value"]})
         if element is not None and element != "None":
             for jj in range(website["parent_number"]):  # Get parent from element (if desired)
                 element = element.parent
@@ -290,6 +293,8 @@ def check_status(path, name):
             # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
             if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
                 # not equal, notificate via console and email
+                shutil.copy(str(pathlib.Path().resolve()) + '\\data\\' + website["name"] + '.html',
+                          str(pathlib.Path().resolve()) + '\\data\\Previous versions\\' + website["name"] + '.html')
                 save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
                 save_html.write(element)
                 save_html.close()
@@ -332,15 +337,14 @@ def check_status(path, name):
     # Wait the desired time
     time.sleep(website["refresh_interval"])
 
-
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
 # Setting path for Windows and Mac
 path = []
 if platform.system() == 'Windows':
-    path = 'D:/OneDrive - Universidad de Valladolid/Personal/Scripts Utiles/web_monitor'
+    path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 elif platform.system() == 'Darwin':
-    path = '/Users/Vic/OneDrive - Universidad de Valladolid/Personal/Scripts Utiles/web_monitor'
+    path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 
 # Initial json load and info storing
 json_info = open(path + '/config.json')
@@ -381,18 +385,6 @@ while True:
                 del thread_pool_names[idx]
             print("Website removed: '" + name + "'\n")
 
-    # If a new website is added... To check this, make the difference between new names and old names. If something
-    # remains, those websites have been added
-    if set(websites_new_names).difference(websites_names) is not None:
-        for name in list(set(websites_new_names).difference(websites_names))[::-1]:  # [::-1] reverse the order of the
-            # list. Not sure if needed, in previous versions was, but I keep it just in case
-            # Start it and add it to the thread pool
-            t = CustomThread(path, name)
-            t.start()
-            thread_pool.append(t)
-            thread_pool_names.append(name)
-            print("New website added: '" + name + "'\n")
-
     # If a website is activated/deactivated...
     websites_names_intersection = list(set(websites_names).intersection(websites_new_names))  # Common websites in old and new version
     websites_xor = []
@@ -423,12 +415,28 @@ while True:
                 print("Web scrapping for '" + name + "' has been stopped\n")
 
     # Check if there are stored websites that are not currently in the monitoring list (neither active nor inactive)...
-    files = list(pathlib.Path('data/').glob('*.html'))
+    files = list(set(pathlib.Path('data/').glob('*.html')) - set(pathlib.Path('data/').glob('OLD - *.html')))
     for file in files:
         if file.stem not in thread_pool_names:  # If so, remove the files. Field "stem" is the name without the suffix
             # (.html in this case)
             print("Removing file of '" + file.stem + "'\n")
             os.remove(file)
+            try:
+                os.remove(str(pathlib.Path().resolve()) + '\\data\\Previous versions\\' + file.stem + '.html')
+            except Exception:
+                pass
+
+    # If a new website is added... To check this, make the difference between new names and old names. If something
+    # remains, those websites have been added
+    if set(websites_new_names).difference(websites_names) is not None:
+        for name in list(set(websites_new_names).difference(websites_names))[::-1]:  # [::-1] reverse the order of the
+            # list. Not sure if needed, in previous versions was, but I keep it just in case
+            # Start it and add it to the thread pool
+            t = CustomThread(path, name)
+            t.start()
+            thread_pool.append(t)
+            thread_pool_names.append(name)
+            print("New website added: '" + name + "'\n")
 
     # Update variables for the next iteration
     websites_names = websites_new_names
