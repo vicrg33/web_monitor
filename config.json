@@ -1,0 +1,74 @@
+{
+	"websites": [
+		{
+			"url": "https://www.unileon.es/actualidad/convocatorias-urgentes",
+			"element": "div",
+			"attrib_key": "class",
+			"attrib_value": "view-content",
+			"parent_number": 0,
+			"refresh_interval": 86400,
+			"name": "Universidad de Leon - Convocatorias urgentes",
+			"active": true,
+			"email" : "patriarce15@gmail.com",
+			"javascript" : false,
+			"compose_body": true,
+			"only_text": false
+		},
+		{
+			"url": "https://www.unileon.es/actualidad/convocatorias",
+			"element": "div",
+			"attrib_key": "class",
+			"attrib_value": "view-content",
+			"parent_number": 0,
+			"refresh_interval": 86400,
+			"name": "Universidad de Leon - Convocatorias normales",
+			"active": true,
+			"email" : "patriarce15@gmail.com",
+			"javascript" : false,
+			"compose_body": true,
+			"only_text": false
+		},
+		{
+			"url": "https://www.zara.com/es/es/camisa-estructura-rayas-p04261799.html?v1=99403887",
+			"element": "li",
+			"attrib_key": "id",
+			"attrib_value": "product-detail-size-selector-product-detail-product-size-selector-99403887-item-1",
+			"parent_number": 0,
+			"refresh_interval": 15,
+			"name": "Zara - Camisa Amarilla",
+			"active": false,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false
+		},
+		{
+			"url": "https://www.amazon.es/s?k=abrigo&i=warehouse-deals&bbn=8873212031",
+			"element": "div",
+			"attrib_key": "class",
+			"attrib_value": "s-main-slot s-result-list s-search-results sg-row",
+			"parent_number": 0,
+			"refresh_interval": 600,
+			"name": "Amazon - Abrigo",
+			"active": false,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false
+		},
+		{
+			"url": "https://www.amazon.es/s?k=Pantalon+nieve&i=warehouse-deals&bbn=8873212031",
+			"element": "div",
+			"attrib_key": "class",
+			"attrib_value": "s-main-slot s-result-list s-search-results sg-row",
+			"parent_number": 0,
+			"refresh_interval": 600,
+			"name": "Amazon - Pantalones nieve",
+			"active": false,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false
+		}
+	]
+}
