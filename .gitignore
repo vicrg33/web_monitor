@@ -8,6 +8,8 @@ node_modules/
 dist/
 data/
 venv/
+firefox_profile/
+test_functions/
 
 # Compiled Java class files
 *.class
@@ -49,5 +51,3 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-config.json
-

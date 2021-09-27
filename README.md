@@ -14,7 +14,7 @@ In the json file...
 * **"attrib_key"**: attribute key that identifies unequivocally "element". If you want to get an element by its text use "text"
 * **"attrib_value"**: attribute value that identifies unequivocally "element"
 * **"parent_number"**: if you can't identify unequivocally your element, identify a child, and indicate in this how many child-parent jumps are necessary to reach from the identified element to your desired element
-* **"refresh_interval"**: checking interval (in seconds)
+* **"refresh_interval"**: checking interval (in seconds). For elements with "javascript" set to "true", this time will be increased by 10 seconds due to Selenium issues
 * **"name"**: identifier. MUST BE UNIQUE
 * **"active"**: true/false, to activate/deactivate the monitoring
 * **"email"**: email address to send the notification
