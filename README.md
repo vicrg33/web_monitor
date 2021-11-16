@@ -19,8 +19,9 @@ In the json file...
 * **"active"**: true/false, to activate/deactivate the monitoring
 * **"email"**: email address to send the notification
 * **"javascript"**: true/false, true if the website require javascript
-* **"compose_body"**: true/false, true if you want to send the changes in the email body, if not only the link will be sent
+* **"compose_body"**: true/false, true if you want to send the changes in the email body, if not only the link will be sent. Recomended false, as it provokes many errors
 * **"only_text"**: true/false, true if you want to check only the text from the selected element
+* **"all_elements"**: true/false, true if you want to check all the elements that match element/attrib_key and attrib_value, false if only the first match
 
 **EXAMPLE**
 ```sh

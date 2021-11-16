@@ -12,7 +12,8 @@
 			"email" : "patriarce15@gmail.com",
 			"javascript" : false,
 			"compose_body": true,
-			"only_text": false
+			"only_text": false,
+			"all_elements": false
 		},
 		{
 			"url": "https://www.unileon.es/actualidad/convocatorias",
@@ -26,7 +27,8 @@
 			"email" : "patriarce15@gmail.com",
 			"javascript" : false,
 			"compose_body": true,
-			"only_text": false
+			"only_text": false,
+			"all_elements": false
 		},
 		{
 			"url": "https://www.zara.com/es/es/camisa-estructura-rayas-p04261799.html?v1=99403887",
@@ -40,35 +42,68 @@
 			"email" : "vic1993victor1993@gmail.com",
 			"javascript" : true,
 			"compose_body": false,
-			"only_text": false
+			"only_text": false,
+			"all_elements": false
 		},
 		{
-			"url": "https://www.amazon.es/s?k=abrigo&i=warehouse-deals&bbn=8873212031",
-			"element": "div",
+			"url": "https://www.chollometro.com/profile/wexwex/keyword-alarms#feed",
+			"element": "strong",
 			"attrib_key": "class",
-			"attrib_value": "s-main-slot s-result-list s-search-results sg-row",
+			"attrib_value": "thread-title",
 			"parent_number": 0,
 			"refresh_interval": 600,
-			"name": "Amazon - Abrigo",
-			"active": false,
+			"name": "Alertas - Chll",
+			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
 			"javascript" : true,
 			"compose_body": false,
-			"only_text": false
+			"only_text": true,
+			"all_elements": true
 		},
 		{
-			"url": "https://www.amazon.es/s?k=Pantalon+nieve&i=warehouse-deals&bbn=8873212031",
+			"url": "https://www.betabound.com/",
 			"element": "div",
-			"attrib_key": "class",
-			"attrib_value": "s-main-slot s-result-list s-search-results sg-row",
+			"attrib_key": "id",
+			"attrib_value": "opp-list",
 			"parent_number": 0,
-			"refresh_interval": 600,
-			"name": "Amazon - Pantalones nieve",
-			"active": false,
+			"refresh_interval": 86400,
+			"name": "New beta",
+			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
 			"javascript" : true,
 			"compose_body": false,
-			"only_text": false
+			"only_text": false,
+			"all_elements": true
+		},
+		{
+			"url": "https://www.info.valladolid.es/-/lugares-espacios-culturales-galerias-va",
+			"element": "div",
+			"attrib_key": "id",
+			"attrib_value": "p_p_id_com_liferay_asset_publisher_web_portlet_RelatedAssetsPortlet_INSTANCE_QM2e5ly3yM3Q_",
+			"parent_number": 0,
+			"refresh_interval": 86400,
+			"name": "Galerias VA",
+			"active": true,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false,
+			"all_elements": true
+		},
+		{
+			"url": "https://www.lidl.es/es/pantalon-de-esqui-mujer/p3859",
+			"element": "option",
+			"attrib_key": "value",
+			"attrib_value": "3832,11379",
+			"parent_number": 0,
+			"refresh_interval": 600,
+			"name": "Pantalones Lidl",
+			"active": true,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false,
+			"all_elements": true
 		}
 	]
 }

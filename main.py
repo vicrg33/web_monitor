@@ -15,6 +15,9 @@ import lxml.etree
 from random import uniform
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+import re
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
@@ -245,14 +248,17 @@ def check_status(path, name):
             else:
                 options = Options()
                 options.headless = True
-                driver = webdriver.Firefox(options=options, service_log_path=os.devnull)
+                options.set_preference('profile', './firefox_profile/ik788313.web_monitor')
+                service = Service(log_path=os.devnull, executable_path='geckodriver.exe')
+                driver = webdriver.Firefox(options=options, service=service)
 
                 driver.get(website["url"])
                 time.sleep(10)
                 html = driver.page_source
                 driver.close()
 
-        except:
+        except Exception as e:
+            print(e)
             time.sleep(60)
             continue
         else:
@@ -261,15 +267,22 @@ def check_status(path, name):
     # Getting the desired element...
     if website["attrib_key"] != 'all':  # One element, defined by "element", "attrib-key", and "attrib_value"
         soup = BeautifulSoup(html, features="lxml")
-        if website["attrib_key"] == "text":
-            element = soup.find(website["element"], text=website["attrib_value"])
+        if website["attrib_key"] == "text":  # This is for selecting an element by text
+            if website["all_elements"]:
+                element = soup.find_all(website["element"], text=re.compile('.*' + website["attrib_value"] + '.*'))
+            else:
+                element = soup.find(website["element"], text=re.compile('.*' + website["attrib_value"] + '.*'))
         else:
-            element = soup.find(website["element"], {website["attrib_key"]: website["attrib_value"]})
+            if website["all_elements"]:                element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
+            else:
+                element = soup.find(website["element"], {website["attrib_key"]: website["attrib_value"]})
         if element is not None and element != "None":
             for jj in range(website["parent_number"]):  # Get parent from element (if desired)
-                element = element.parent
-        if website["only_text"]:  # If only check the text is selected
-            element = element.get_text()
+                for kk in range(len(element)):
+                    element[kk] = element[kk].parent
+        if website["only_text"]:  # This is for assessing the differences only in the text
+            for kk in range(len(element)):
+                element[kk] = element[kk].get_text()
     else:  # Or the full HTML
         soup = BeautifulSoup(html, features="lxml")
         element = soup.find('html')
