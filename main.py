@@ -250,7 +250,7 @@ def check_status(path, name):
 
                 options = Options()
                 options.profile = r'.\firefox_profile\4obzz88j.web_monitor'
-                options.headless = False
+                options.headless = True
                 service = Service('geckodriver.exe', log_path=os.devnull)
                 driver = webdriver.Firefox(options=options, service=service)
 
