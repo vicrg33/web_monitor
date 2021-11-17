@@ -15,9 +15,9 @@ import lxml.etree
 from random import uniform
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 import re
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
@@ -247,10 +247,9 @@ def check_status(path, name):
 
             else:
                 options = Options()
-                options.headless = True
-                options.set_preference('profile', './firefox_profile/ik788313.web_monitor')
-                service = Service(log_path=os.devnull, executable_path='geckodriver.exe')
-                driver = webdriver.Firefox(options=options, service=service)
+                options.headless = False
+                fp = webdriver.FirefoxProfile('./firefox_profile/4obzz88j.web_monitor')
+                driver = webdriver.Firefox(fp, options=options, service_log_path=os.devnull)  # service=service
 
                 driver.get(website["url"])
                 time.sleep(10)

@@ -81,7 +81,7 @@
 			"attrib_key": "id",
 			"attrib_value": "p_p_id_com_liferay_asset_publisher_web_portlet_RelatedAssetsPortlet_INSTANCE_QM2e5ly3yM3Q_",
 			"parent_number": 0,
-			"refresh_interval": 86400,
+			"refresh_interval": 604800,
 			"name": "Galerias VA",
 			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
