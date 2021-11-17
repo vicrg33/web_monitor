@@ -254,6 +254,10 @@ def check_status(path, name):
                 service = Service('geckodriver.exe', log_path=os.devnull)
                 driver = webdriver.Firefox(options=options, service=service)
 
+                driver.get(website["url"])
+                time.sleep(10)
+                html = driver.page_source
+                driver.close()
 
         except Exception as e:
             print(e)
