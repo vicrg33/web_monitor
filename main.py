@@ -15,6 +15,7 @@ import lxml.etree
 from random import uniform
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 import re
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -246,10 +247,12 @@ def check_status(path, name):
                 html = urllib.request.urlopen(request).read()
 
             else:
+
                 options = Options()
+                options.profile = r'.\firefox_profile\4obzz88j.web_monitor'
                 options.headless = False
-                fp = webdriver.FirefoxProfile('./firefox_profile/4obzz88j.web_monitor')
-                driver = webdriver.Firefox(fp, options=options, service_log_path=os.devnull)  # service=service
+                service = Service('geckodriver.exe', log_path=os.devnull)
+                driver = webdriver.Firefox(options=options, service=service)
 
                 driver.get(website["url"])
                 time.sleep(10)
