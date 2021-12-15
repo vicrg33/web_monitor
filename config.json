@@ -16,7 +16,8 @@
 			"all_elements": false,
 			"idx_element": 0,
 			"only_check_attribute": false,
-			"attribute_to_check": "-"
+			"attribute_to_check": "-",
+			"login_needed": false
 		},
 		{
 			"url": "https://www.unileon.es/actualidad/convocatorias",
@@ -34,7 +35,8 @@
 			"all_elements": false,
 			"idx_element": 0,
 			"only_check_attribute": false,
-			"attribute_to_check": "-"
+			"attribute_to_check": "-",
+			"login_needed": false
 		},
 		{
 			"url": "https://www.zara.com/es/es/bota-cowboy-piel-p12054810.html",
@@ -52,7 +54,8 @@
 			"all_elements": true,
 			"idx_element": 0,
 			"only_check_attribute": false,
-			"attribute_to_check": "data-qa-action"
+			"attribute_to_check": "data-qa-action",
+			"login_needed": false
 		},
 		{
 			"url": "https://www.chollometro.com/profile/wexwex/keyword-alarms#feed",
@@ -62,7 +65,7 @@
 			"parent_number": 0,
 			"refresh_interval": 600,
 			"name": "Alertas - Chll",
-			"active": true,
+			"active": false,
 			"email" : "vic1993victor1993@gmail.com",
 			"javascript" : true,
 			"compose_body": false,
@@ -70,7 +73,8 @@
 			"all_elements": true,
 			"idx_element": 1,
 			"only_check_attribute": false,
-			"attribute_to_check": "-"
+			"attribute_to_check": "-",
+			"login_needed": true
 		},
 		{
 			"url": "https://www.betabound.com/",
@@ -88,7 +92,8 @@
 			"all_elements": false,
 			"idx_element": 0,
 			"only_check_attribute": false,
-			"attribute_to_check": "-"
+			"attribute_to_check": "-",
+			"login_needed": false
 		},
 		{
 			"url": "https://www.lidl.es/es/pantalon-de-esqui-mujer/p3859",
@@ -96,7 +101,7 @@
 			"attrib_key": "value",
 			"attrib_value": "3832,11379",
 			"parent_number": 0,
-			"refresh_interval": 20,
+			"refresh_interval": 120,
 			"name": "Pantalones Lidl",
 			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
@@ -106,14 +111,15 @@
 			"all_elements": true,
 			"idx_element": 1,
 			"only_check_attribute": false,
-			"attribute_to_check": "-"
+			"attribute_to_check": "-",
+			"login_needed": false
 		},
 		{
 			"url": "https://www.bershka.com/es/vestido-mini-manga-larga-frunce-lateral-print-c0p103852370.html?colorId=600",
 			"element": "-",
 			"attrib_key": "xpath",
 			"attrib_value": "//*[@id=\"main-content\"]/section/section/section[1]/div[1]/section/div/div[1]/div[4]/div[2]/ul/li[3]/button",
-			"refresh_interval": 20,
+			"refresh_interval": 120,
 			"name": "Vestidito M",
 			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
@@ -123,7 +129,8 @@
 			"all_elements": true,
 			"idx_element": 1,
 			"only_check_attribute": false,
-			"attribute_to_check": "-"
+			"attribute_to_check": "-",
+			"login_needed": false
 		}
 	]
 }

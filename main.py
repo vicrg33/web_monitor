@@ -4,24 +4,31 @@ import time
 from bs4 import BeautifulSoup
 import pathlib
 import dependencies.notify_me as notify_me
+import dependencies.set_rw as set_rw
+import dependencies.format_differences as format_differences
 import threading
 import platform
 import io
 import numpy as np
 import os
 import shutil
-from xmldiff import main, formatting
-import lxml.etree
 from random import uniform
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import re
-import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
+
+# Setting path for Windows and Mac
+path = []
+if platform.system() == 'Windows':
+    path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+elif platform.system() == 'Darwin':
+    path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+
+# ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
 
 
 class CustomThread(threading.Thread):
@@ -35,191 +42,6 @@ class CustomThread(threading.Thread):
     def run(self):
         while not self.stop:
             check_status(self.path, self.name)
-
-
-# ---------------------------------- FUNCTION DEFINITION FOR FORMATTING THE DIFFERENCES ------------------------------ #
-
-
-def format_differences(old, new, link):
-
-    # ------------------------ FORMAT THE DIFFERENCEs -------------------- #
-    xslt = u'''<?xml version="1.0"?>
-
-    <xsl:stylesheet version="1.0"
-        xmlns:diff="http://namespaces.shoobx.com/diff"
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-
-        <xsl:template name="mark-diff-insert">
-            <ins class="diff-insert">
-                <xsl:apply-templates/>
-            </ins>
-        </xsl:template>
-
-        <xsl:template name="mark-diff-delete">
-            <del class="diff-del">
-                <xsl:apply-templates/>
-            </del>
-        </xsl:template>
-
-        <xsl:template name="mark-diff-insert-formatting">
-            <span class="diff-insert-formatting">
-                <xsl:apply-templates/>
-            </span>
-        </xsl:template>
-
-        <xsl:template name="mark-diff-delete-formatting">
-            <span class="diff-delete-formatting">
-                <xsl:apply-templates/>
-            </span>
-        </xsl:template>
-
-        <!-- `diff:insert` and `diff:delete` elements are only placed around
-            text. -->
-        <xsl:template match="diff:insert">
-            <span style="background-color:#82F67C;">
-                <xsl:apply-templates/>
-            </span>
-        </xsl:template>
-
-        <xsl:template match="diff:delete">
-            <span style="background-color:#FF4A4A;">
-                <xsl:apply-templates/>
-            </span>
-        </xsl:template>
-
-        <!-- If any major paragraph element is inside a diff tag, put the markup
-            around the entire paragraph. -->
-        <xsl:template match="p|h1|h2|h3|h4|h5|h6">
-            <xsl:choose>
-                <xsl:when test="ancestor-or-self::*[@diff:insert]">
-                    <xsl:copy>
-                        <xsl:call-template name="mark-diff-insert" />
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:when test="ancestor-or-self::*[@diff:delete]">
-                    <xsl:copy>
-                        <xsl:call-template name="mark-diff-delete" />
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:copy>
-                        <xsl:apply-templates/>
-                    </xsl:copy>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:template>
-
-        <!-- Put diff markup in marked paragraph formatting tags. -->
-        <xsl:template match="span|b|i|u|sub|sup">
-            <xsl:choose>
-                <xsl:when test="@diff:insert">
-                    <xsl:copy>
-                        <xsl:call-template name="mark-diff-insert" />
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:when test="@diff:delete">
-                    <xsl:copy>
-                        <xsl:call-template name="mark-diff-delete" />
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:when test="@diff:insert-formatting">
-                    <xsl:copy>
-                        <xsl:call-template name="mark-diff-insert-formatting" />
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:when test="@diff:delete-formatting">
-                    <xsl:copy>
-                        <xsl:call-template name="mark-diff-delete-formatting" />
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:copy>
-                        <xsl:apply-templates/>
-                    </xsl:copy>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:template>
-
-        <!-- Put diff markup into pseudo-paragraph tags, if they act as paragraph. -->
-        <xsl:template match="li|th|td">
-            <xsl:variable name="localParas" select="para|h1|h2|h3|h4|h5|h6" />
-            <xsl:choose>
-                <xsl:when test="not($localParas) and ancestor-or-self::*[@diff:insert]">
-                    <xsl:copy>
-                        <para>
-                            <xsl:call-template name="mark-diff-insert" />
-                        </para>
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:when test="not($localParas) and ancestor-or-self::*[@diff:delete]">
-                    <xsl:copy>
-                        <para>
-                            <xsl:call-template name="mark-diff-delete" />
-                        </para>
-                    </xsl:copy>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:copy>
-                        <xsl:apply-templates/>
-                    </xsl:copy>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:template>
-
-
-        <!-- =====[ Boilerplate ]=============================================== -->
-
-        <!-- Remove all processing information -->
-        <xsl:template match="//processing-instruction()" />
-
-        <!-- Catch all with Identity Recursion -->
-        <xsl:template match="@*|node()">
-            <xsl:copy>
-                <xsl:apply-templates select="@*|node()"/>
-            </xsl:copy>
-        </xsl:template>
-
-        <!-- Main rule for whole document -->
-        <xsl:template match="/">
-            <xsl:apply-templates/>
-        </xsl:template>
-
-    </xsl:stylesheet>'''
-    xslt_template = lxml.etree.fromstring(xslt)
-
-    class HTMLFormatter(formatting.XMLFormatter):
-        def render(self, result):
-            transform = lxml.etree.XSLT(xslt_template)
-            result = transform(result)
-            return super(HTMLFormatter, self).render(result)
-
-    formatter = HTMLFormatter(text_tags=('p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'),
-                              formatting_tags=('b', 'u', 'i', 'em', 'super', 'sup', 'sub', 'link', 'a', 'span'))
-    result = main.diff_texts(old, new, formatter=formatter)
-
-    # -------------------------- BUILD THE HTML EMAIL BODY ------------------------------ #
-    html_code = """\
-            <html>
-                <head>
-                    <meta http-equiv="Content-Type"
-                          content="text/html; charset=utf-8" />
-                    <style type="text/css">
-                        .diff-insert{background-color:#82F67C}
-                        .diff-del{background-color:#FF6666}
-                        .diff-insert-formatting{background-color:#82F67C}
-                        .diff-delete-formatting{background-color:#FF6666}
-                    </style>
-                </head>
-                <body>
-                    <a href='""" + link + """'>Visit web page</a>
-                    <br><br><br><br>
-                    """ + result + """
-                    <br><br>
-                </body>
-            </html>
-    """
-    return html_code
-
 
 # ---------------------------------- FUNCTION DEFINITION FOR CHECKING THE CHANGES ------------------------------------ #
 
@@ -252,12 +74,15 @@ def check_status(path, name):
                 options = Options()
                 # options.add_argument('--no-sandbox')
                 # options.add_argument('--disable-dev-shm-usage')
-                # options.add_argument('--headless')
+                options.add_argument('--headless')
                 options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
                 options.add_experimental_option('excludeSwitches', ['enable-logging'])
                 options.add_argument("--disable-gpu")
-                options.add_argument(
-                    "user-data-dir=D:\OneDrive - gib.tel.uva.es\Personal\Scripts Utiles\web_monitor/chrome_tmp")
+                if website["login_needed"]:
+                    if not os.path.exists(path + '\\chrome_tmp\\' + website["name"]):
+                        os.mkdir(path + '\\chrome_tmp\\' + website["name"])
+                    options.add_argument(
+                        "user-data-dir=" + path + "/chrome_tmp/" + website["name"])
                 service = Service('chromedriver.exe', log_path=os.devnull)
                 driver = webdriver.Chrome(options=options, service=service)
 
@@ -327,14 +152,14 @@ def check_status(path, name):
             # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
             if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
                 # not equal, notificate via console and email
-                shutil.copy(str(pathlib.Path().resolve()) + '\\data\\' + website["name"] + '.html',
-                          str(pathlib.Path().resolve()) + '\\data\\Previous versions\\' + website["name"] + '.html')
+                shutil.copy(path + '\\data\\' + website["name"] + '.html',
+                          path + '\\data\\Previous versions\\' + website["name"] + '.html')
                 save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
                 save_html.write(element)
                 save_html.close()
                 # Format the differences (old in red, new in green)
                 if website["compose_body"]:
-                    email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
+                    email_body = format_differences.format_differences(orig.replace('\n', '').replace('\r', ''),
                                                     element.replace('\n', '').replace('\r', ''), website["url"])
                     notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
                 else:
@@ -373,13 +198,6 @@ def check_status(path, name):
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
-# Setting path for Windows and Mac
-path = []
-if platform.system() == 'Windows':
-    path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
-elif platform.system() == 'Darwin':
-    path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
-
 # Initial json load and info storing
 json_info = open(path + '/config.json')
 websites = json.load(json_info)["websites"]
@@ -397,7 +215,7 @@ for idx in range(len(websites)):
         t.start()
         thread_pool.append(t)
         thread_pool_names.append(websites[idx]["name"])
-        time.sleep(round(uniform(5, 15), 2)) # Wait a random amount of time (between 5 and 50 seconds) before starting another thread to avoid trying to send two mails at a time
+        time.sleep(round(uniform(5, 15), 2))  # Wait a random amount of time (between 5 and 50 seconds) before starting another thread to avoid trying to send two mails at a time
 
 # Infinite loop for adding/removing/activating/deactivating websites
 while True:
@@ -449,14 +267,25 @@ while True:
                 print("Web scrapping for '" + name + "' has been stopped\n")
 
     # Check if there are stored websites that are not currently in the monitoring list (neither active nor inactive)...
-    files = list(set(pathlib.Path('data/').glob('*.html')) - set(pathlib.Path('data/').glob('OLD - *.html')))
+    files = list(set(pathlib.Path('data/').glob('*.html')))
     for file in files:
         if file.stem not in thread_pool_names:  # If so, remove the files. Field "stem" is the name without the suffix
             # (.html in this case)
             print("Removing file of '" + file.stem + "'\n")
             os.remove(file)
             try:
-                os.remove(str(pathlib.Path().resolve()) + '\\data\\Previous versions\\' + file.stem + '.html')
+                os.remove(path + '\\data\\Previous versions\\' + file.stem + '.html')
+            except Exception:
+                pass
+
+    # Check if there are stored browser metadata that are not currently in the monitoring list (neither active nor
+    # inactive)...
+    folders = list(set(pathlib.Path('chrome_tmp/').glob('*/')))
+    for folder in folders:
+        if folder.stem not in thread_pool_names:  # If so, remove the files
+            try:
+                shutil.rmtree(path + '\\chrome_tmp\\' + file.stem, onerror=set_rw.set_rw)
+                print("Removing browser metadata of '" + file.stem + "'\n")
             except Exception:
                 pass
 
