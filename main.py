@@ -14,8 +14,8 @@ from xmldiff import main, formatting
 import lxml.etree
 from random import uniform
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import re
 import warnings
@@ -250,10 +250,16 @@ def check_status(path, name):
             else:
 
                 options = Options()
-                options.profile = r'.\firefox_profile\4obzz88j.web_monitor'
-                options.headless = True
-                service = Service('geckodriver.exe', log_path=os.devnull)
-                driver = webdriver.Firefox(options=options, service=service)
+                # options.add_argument('--no-sandbox')
+                # options.add_argument('--disable-dev-shm-usage')
+                # options.add_argument('--headless')
+                options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
+                options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                options.add_argument("--disable-gpu")
+                options.add_argument(
+                    "user-data-dir=D:\OneDrive - gib.tel.uva.es\Personal\Scripts Utiles\web_monitor/chrome_tmp")
+                service = Service('chromedriver.exe', log_path=os.devnull)
+                driver = webdriver.Chrome(options=options, service=service)
 
                 driver.get(website["url"])
                 time.sleep(10)
