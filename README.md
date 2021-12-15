@@ -21,22 +21,28 @@ In the json file...
 * **"javascript"**: true/false, true if the website require javascript
 * **"compose_body"**: true/false, true if you want to send the changes in the email body, if not only the link will be sent. Recomended false, as it provokes many errors
 * **"only_text"**: true/false, true if you want to check only the text from the selected element
-* **"all_elements"**: true/false, true if you want to check all the elements that match element/attrib_key and attrib_value, false if only the first match
+* **"all_elements"**: true/false, true if you want to check all the elements that match attrib_key-attrib_value, false if only the "idx_element" match
+* **"idx_element"**: int, the index of the element (that match attrib_key-attrib_value) that will be tracked. Will only be used if "all_elements" is false
+* **"only_check_attribute"**: true/false, to check only the value of one attribute of the selected element
+* **"attribute_to_check"**: the name of the attribute to check for changes
 
 **EXAMPLE**
 ```sh
 {
-	"url": "https://www.unileon.es/actualidad/convocatorias-urgentes",
-	"element": "div",
-	"attrib_key": "class",
-	"attrib_value": "view-content",
-	"parent_number": 0,
-	"refresh_interval": 86400,
-	"name": "Universidad de Leon - Convocatorias urgentes",
-	"active": true,
-	"email" : "patriarce15@gmail.com",
-	"javascript" : false,
-	"compose_body": true,
-	"only_text": false
-}
+    "url": "https://www.unileon.es/actualidad/convocatorias-urgentes",
+    "element": "div",
+    "attrib_key": "class",
+    "attrib_value": "view-content",
+    "parent_number": 0,
+    "refresh_interval": 86400,
+    "name": "Universidad de Leon - Convocatorias urgentes",
+    "active": true,
+    "email" : "patriarce15@gmail.com",
+    "javascript" : false,
+    "compose_body": true,
+    "only_text": false,
+    "all_elements": false,
+    "only_check_attribute": false,
+    "attribute_to_check": "-"
+},
 ```

@@ -16,6 +16,7 @@ from random import uniform
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.common.by import By
 import re
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -256,8 +257,13 @@ def check_status(path, name):
 
                 driver.get(website["url"])
                 time.sleep(10)
-                html = driver.page_source
-                driver.close()
+                if website["attrib_key"] == "xpath":
+                    driver_element = driver.find_element(By.XPATH, website["attrib_value"])
+                    html = driver_element.get_attribute('outerHTML')
+                    driver.close()
+                else:
+                    html = driver.page_source
+                    driver.close()
 
         except Exception as e:
             print(e)
@@ -267,21 +273,26 @@ def check_status(path, name):
             break
 
     # Getting the desired element...
-    if website["attrib_key"] != 'all':  # One element, defined by "element", "attrib-key", and "attrib_value"
+    if website["attrib_key"] != 'all' and not website["attrib_key"] == "xpath":  # One element, defined by "element", "attrib-key", and "attrib_value"
         soup = BeautifulSoup(html, features="lxml")
         if website["attrib_key"] == "text":  # This is for selecting an element by text
-            if website["all_elements"]:
-                element = soup.find_all(website["element"], text=re.compile('.*' + website["attrib_value"] + '.*'))
-            else:
-                element = soup.find(website["element"], text=re.compile('.*' + website["attrib_value"] + '.*'))
+            element = soup.find_all(website["element"], text=re.compile('.*' + website["attrib_value"] + '.*'))
+            if not website["all_elements"]:  # Check all the elements that match
+                element = element[website["idx_element"]]
         else:
-            if website["all_elements"]:                element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
-            else:
-                element = soup.find(website["element"], {website["attrib_key"]: website["attrib_value"]})
+            element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
+            if not website["all_elements"]:  # Check all the elements that match
+                element = element[website["idx_element"]]
+        if website["only_check_attribute"]:  # To check only the value of an attribute
+            element = element.get(website["attribute_to_check"])
         if element is not None and element != "None":
-            for jj in range(website["parent_number"]):  # Get parent from element (if desired)
-                for kk in range(len(element)):
-                    element[kk] = element[kk].parent
+            if len(element) > 1:  # If there are more than one element...
+                for jj in range(website["parent_number"]):  # Get parent from element (if desired)
+                    for kk in range(len(element)):
+                        element[kk] = element[kk].parent
+            else:  # If there is only one...
+                for jj in range(website["parent_number"]):  # Get parent from element (if desired)
+                    element = element.parent
         if website["only_text"]:  # This is for assessing the differences only in the text
             for kk in range(len(element)):
                 element[kk] = element[kk].get_text()

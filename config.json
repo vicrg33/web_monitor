@@ -13,7 +13,10 @@
 			"javascript" : false,
 			"compose_body": true,
 			"only_text": false,
-			"all_elements": false
+			"all_elements": false,
+			"idx_element": 0,
+			"only_check_attribute": false,
+			"attribute_to_check": "-"
 		},
 		{
 			"url": "https://www.unileon.es/actualidad/convocatorias",
@@ -28,22 +31,28 @@
 			"javascript" : false,
 			"compose_body": true,
 			"only_text": false,
-			"all_elements": false
+			"all_elements": false,
+			"idx_element": 0,
+			"only_check_attribute": false,
+			"attribute_to_check": "-"
 		},
 		{
-			"url": "https://www.zara.com/es/es/camisa-estructura-rayas-p04261799.html?v1=99403887",
+			"url": "https://www.zara.com/es/es/bota-cowboy-piel-p12054810.html",
 			"element": "li",
 			"attrib_key": "id",
-			"attrib_value": "product-detail-size-selector-product-detail-product-size-selector-99403887-item-1",
+			"attrib_value": "product-detail-size-selector-product-detail-product-size-selector-146041695-item-2",
 			"parent_number": 0,
 			"refresh_interval": 15,
-			"name": "Zara - Camisa Amarilla",
+			"name": "Zara - Botas",
 			"active": false,
 			"email" : "vic1993victor1993@gmail.com",
 			"javascript" : true,
 			"compose_body": false,
 			"only_text": false,
-			"all_elements": false
+			"all_elements": true,
+			"idx_element": 0,
+			"only_check_attribute": false,
+			"attribute_to_check": "data-qa-action"
 		},
 		{
 			"url": "https://www.chollometro.com/profile/wexwex/keyword-alarms#feed",
@@ -58,7 +67,10 @@
 			"javascript" : true,
 			"compose_body": false,
 			"only_text": true,
-			"all_elements": true
+			"all_elements": true,
+			"idx_element": 1,
+			"only_check_attribute": false,
+			"attribute_to_check": "-"
 		},
 		{
 			"url": "https://www.betabound.com/",
@@ -73,22 +85,10 @@
 			"javascript" : true,
 			"compose_body": false,
 			"only_text": false,
-			"all_elements": true
-		},
-		{
-			"url": "https://www.info.valladolid.es/-/lugares-espacios-culturales-galerias-va",
-			"element": "div",
-			"attrib_key": "id",
-			"attrib_value": "p_p_id_com_liferay_asset_publisher_web_portlet_RelatedAssetsPortlet_INSTANCE_QM2e5ly3yM3Q_",
-			"parent_number": 0,
-			"refresh_interval": 604800,
-			"name": "Galerias VA",
-			"active": true,
-			"email" : "vic1993victor1993@gmail.com",
-			"javascript" : true,
-			"compose_body": false,
-			"only_text": false,
-			"all_elements": true
+			"all_elements": false,
+			"idx_element": 0,
+			"only_check_attribute": false,
+			"attribute_to_check": "-"
 		},
 		{
 			"url": "https://www.lidl.es/es/pantalon-de-esqui-mujer/p3859",
@@ -103,7 +103,28 @@
 			"javascript" : true,
 			"compose_body": false,
 			"only_text": false,
-			"all_elements": true
+			"all_elements": true,
+			"idx_element": 1,
+			"only_check_attribute": false,
+			"attribute_to_check": "-"
+		},
+		{
+			"url": "https://www.bershka.com/es/vestido-mini-manga-larga-frunce-lateral-print-c0p103852370.html?colorId=600",
+			"element": "-",
+			"attrib_key": "xpath",
+			"attrib_value": "//*[@id=\"main-content\"]/section/section/section[1]/div[1]/section/div/div[1]/div[4]/div[2]/ul/li[3]/button",
+			"parent_number": 0,
+			"refresh_interval": 20,
+			"name": "Vestidito M",
+			"active": true,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false,
+			"all_elements": true,
+			"idx_element": 1,
+			"only_check_attribute": false,
+			"attribute_to_check": "-"
 		}
 	]
 }
