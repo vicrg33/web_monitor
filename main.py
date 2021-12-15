@@ -4,6 +4,7 @@ import time
 from bs4 import BeautifulSoup
 import pathlib
 import dependencies.notify_me as notify_me
+import dependencies.format_differences as format_differences
 import threading
 import platform
 import io
@@ -18,6 +19,8 @@ from selenium.webdriver.common.by import By
 import re
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
 
 # Setting path for Windows and Mac
 path = []
@@ -40,7 +43,6 @@ class CustomThread(threading.Thread):
     def run(self):
         while not self.stop:
             check_status(self.path, self.name)
-
 
 # ---------------------------------- FUNCTION DEFINITION FOR CHECKING THE CHANGES ------------------------------------ #
 
@@ -142,14 +144,14 @@ def check_status(path, name):
             # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
             if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
                 # not equal, notificate via console and email
-                shutil.copy(str(pathlib.Path().resolve()) + '\\data\\' + website["name"] + '.html',
-                          str(pathlib.Path().resolve()) + '\\data\\Previous versions\\' + website["name"] + '.html')
+                shutil.copy(path + '\\data\\' + website["name"] + '.html',
+                            path + '\\data\\Previous versions\\' + website["name"] + '.html')
                 save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
                 save_html.write(element)
                 save_html.close()
                 # Format the differences (old in red, new in green)
                 if website["compose_body"]:
-                    email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
+                    email_body = format_differences.format_differences(orig.replace('\n', '').replace('\r', ''),
                                                     element.replace('\n', '').replace('\r', ''), website["url"])
                     notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
                 else:
@@ -264,7 +266,7 @@ while True:
             print("Removing file of '" + file.stem + "'\n")
             os.remove(file)
             try:
-                os.remove(str(pathlib.Path().resolve()) + '\\data\\Previous versions\\' + file.stem + '.html')
+                os.remove(str(path + '\\data\\Previous versions\\' + file.stem + '.html')
             except Exception:
                 pass
 
