@@ -259,14 +259,14 @@ while True:
                 print("Web scrapping for '" + name + "' has been stopped\n")
 
     # Check if there are stored websites that are not currently in the monitoring list (neither active nor inactive)...
-    files = list(set(pathlib.Path('data/').glob('*.html')) - set(pathlib.Path('data/').glob('OLD - *.html')))
+    files = list(set(pathlib.Path('data/').glob('*.html')))
     for file in files:
         if file.stem not in thread_pool_names:  # If so, remove the files. Field "stem" is the name without the suffix
             # (.html in this case)
             print("Removing file of '" + file.stem + "'\n")
             os.remove(file)
             try:
-                os.remove(str(path + '\\data\\Previous versions\\' + file.stem + '.html')
+                os.remove(path + '\\data\\Previous versions\\' + file.stem + '.html')
             except Exception:
                 pass
 
