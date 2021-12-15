@@ -19,7 +19,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import re
 
-# ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
+# ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
 
 # Setting path for Windows and Mac
 path = []
@@ -28,7 +28,7 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 
-# ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
+# ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
 
 class CustomThread(threading.Thread):
