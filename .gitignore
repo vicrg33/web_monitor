@@ -10,6 +10,7 @@ data/
 venv/
 firefox_profile/
 test_functions/
+chrome_tmp/
 
 # Compiled Java class files
 *.class
