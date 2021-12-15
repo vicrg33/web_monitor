@@ -114,7 +114,7 @@
 			"attrib_key": "xpath",
 			"attrib_value": "//*[@id=\"main-content\"]/section/section/section[1]/div[1]/section/div/div[1]/div[4]/div[2]/ul/li[3]/button",
 			"parent_number": 0,
-			"refresh_interval": 20,
+			"refresh_interval": 120,
 			"name": "Vestidito M",
 			"active": true,
 			"email" : "vic1993victor1993@gmail.com",

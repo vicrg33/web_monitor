@@ -261,9 +261,11 @@ def check_status(path, name):
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
                     html = driver_element.get_attribute('outerHTML')
                     driver.close()
+                    driver.quit()
                 else:
                     html = driver.page_source
                     driver.close()
+                    driver.quit()
 
         except Exception as e:
             print(e)
