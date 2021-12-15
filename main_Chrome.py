@@ -4,6 +4,7 @@ import time
 from bs4 import BeautifulSoup
 import pathlib
 import dependencies.notify_me as notify_me
+import dependencies.set_rw as set_rw
 import dependencies.format_differences as format_differences
 import threading
 import platform
@@ -13,12 +14,10 @@ import os
 import shutil
 from random import uniform
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import re
-import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
 
@@ -73,10 +72,19 @@ def check_status(path, name):
             else:
 
                 options = Options()
-                options.profile = r'.\firefox_profile\4obzz88j.web_monitor'
-                options.headless = True
-                service = Service('geckodriver.exe', log_path=os.devnull)
-                driver = webdriver.Firefox(options=options, service=service)
+                # options.add_argument('--no-sandbox')
+                # options.add_argument('--disable-dev-shm-usage')
+                options.add_argument('--headless')
+                options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
+                options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                options.add_argument("--disable-gpu")
+                if website["login_needed"]:
+                    if not os.path.exists(path + '\\chrome_tmp\\' + website["name"]):
+                        os.mkdir(path + '\\chrome_tmp\\' + website["name"])
+                    options.add_argument(
+                        "user-data-dir=" + path + "/chrome_tmp/" + website["name"])
+                service = Service('chromedriver.exe', log_path=os.devnull)
+                driver = webdriver.Chrome(options=options, service=service)
 
                 driver.get(website["url"])
                 time.sleep(10)
@@ -145,7 +153,7 @@ def check_status(path, name):
             if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
                 # not equal, notificate via console and email
                 shutil.copy(path + '\\data\\' + website["name"] + '.html',
-                            path + '\\data\\Previous versions\\' + website["name"] + '.html')
+                          path + '\\data\\Previous versions\\' + website["name"] + '.html')
                 save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
                 save_html.write(element)
                 save_html.close()
@@ -207,7 +215,7 @@ for idx in range(len(websites)):
         t.start()
         thread_pool.append(t)
         thread_pool_names.append(websites[idx]["name"])
-        time.sleep(round(uniform(5, 15), 2)) # Wait a random amount of time (between 5 and 50 seconds) before starting another thread to avoid trying to send two mails at a time
+        time.sleep(round(uniform(5, 15), 2))  # Wait a random amount of time (between 5 and 50 seconds) before starting another thread to avoid trying to send two mails at a time
 
 # Infinite loop for adding/removing/activating/deactivating websites
 while True:
@@ -267,6 +275,17 @@ while True:
             os.remove(file)
             try:
                 os.remove(path + '\\data\\Previous versions\\' + file.stem + '.html')
+            except Exception:
+                pass
+
+    # Check if there are stored browser metadata that are not currently in the monitoring list (neither active nor
+    # inactive)...
+    folders = list(set(pathlib.Path('chrome_tmp/').glob('*/')))
+    for folder in folders:
+        if folder.stem not in thread_pool_names:  # If so, remove the files
+            try:
+                shutil.rmtree(path + '\\chrome_tmp\\' + file.stem, onerror=set_rw.set_rw)
+                print("Removing browser metadata of '" + file.stem + "'\n")
             except Exception:
                 pass
 
