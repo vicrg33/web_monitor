@@ -19,7 +19,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import re
 
-# ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
+# ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
 
 # Setting path for Windows and Mac
 path = []
@@ -28,7 +28,7 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 
-# ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
+# ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
 
 class CustomThread(threading.Thread):
@@ -72,11 +72,13 @@ def check_status(path, name):
             else:
 
                 options = Options()
-                # options.add_argument('--no-sandbox')
-                # options.add_argument('--disable-dev-shm-usage')
                 options.add_argument('--headless')
                 options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
                 options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
+                options.add_argument('user-agent={0}'.format(user_agent))
+                user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
+                options.add_argument('user-agent={0}'.format(user_agent))
                 options.add_argument("--disable-gpu")
                 if website["login_needed"]:
                     if not os.path.exists(path + '\\chrome_tmp\\' + website["name"]):
@@ -89,6 +91,7 @@ def check_status(path, name):
                 driver.get(website["url"])
                 time.sleep(10)
                 if website["attrib_key"] == "xpath":
+                    time.sleep(10)
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
                     html = driver_element.get_attribute('outerHTML')
                     driver.close()
