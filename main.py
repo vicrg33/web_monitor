@@ -27,6 +27,7 @@ if platform.system() == 'Windows':
     path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
@@ -53,8 +54,12 @@ def check_status(path, name):
     json_info.close()
     websites = json_data["websites"]
     websites_names = [website['name'] for website in websites]
-    idx = websites_names.index(name)
-    website = websites[idx]
+    # If the website could not be found, wait to allow the main script to remove it
+    try:
+        idx = websites_names.index(name)
+        website = websites[idx]
+    except:
+        time.sleep(iteration_wait * 1.5)
     email = website["email"]
     counter_fail = 0
 
@@ -89,7 +94,7 @@ def check_status(path, name):
                 driver.get(website["url"])
                 time.sleep(10)
                 if website["attrib_key"] == "xpath":
-                    time.sleep(10)
+                    time.sleep(5)
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
                     html = driver_element.get_attribute('outerHTML')
                     driver.close()
@@ -158,10 +163,9 @@ def check_status(path, name):
                 save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
                 save_html.write(element)
                 save_html.close()
-                # Format the differences (old in red, new in green)
-                if website["compose_body"]:
+                if website["compose_body"]:  # Format the differences (old in red, new in green)
                     email_body = format_differences.format_differences(orig.replace('\n', '').replace('\r', ''),
-                                                    element.replace('\n', '').replace('\r', ''), website["url"])
+                                                                       element.replace('\n', '').replace('\r', ''), website["url"])
                     notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
                 else:
                     email_body = """\
@@ -309,4 +313,4 @@ while True:
     # Run this function every 900 s. NOTE: This is not the refreshing time for each site (that is indicated in
     # config.json). This indicates how often config.json is loaded looking for changes
     # print("Checking changes in the configuration file")
-    time.sleep(300)
+    time.sleep(iteration_wait)
