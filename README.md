@@ -1,12 +1,12 @@
 **NOTES**: 
-* **IMPORTANT**: A Firefox installation is required
+* **IMPORTANT**: A Chrome installation is required
 * If you want to track in Zara a product with multiple colors, you should use "web_monitor_Zara" script (as a direct link to the specific color is needed). Else you could try to seek the product in the app and use the "Share" function, where you will probably obtain the direct link to the specific color you want to track, thus being to use this script
 * To know the element type and its attribute and key to identify it, you should inspect the element you want to monitor it with a web browser. Example: 
      1) Go to the website you want to track, 
      2) identify visually the element you want to track, 
      3) inspect it (with Google Chrome right click+inspect element), 
      4) seek for the concrete element you want to track, and extract the "element", "attrib_key" and "attrib_value" of the element you want to track 
- 
+* The web monitor may continue checking (and storing) a website just after the deactivation of the website. Not sure of why is this happening (a kind of desynchronization?), but it is not a problem, as in the next iteration of the main script it will automatically be fixed, i.e., this unwanted behaviour will only last one iteration of the main script. 
  
 In the json file...
 * **"url"**: url to be checked
@@ -25,6 +25,7 @@ In the json file...
 * **"idx_element"**: int, the index of the element (that match attrib_key-attrib_value) that will be tracked. Will only be used if "all_elements" is false
 * **"only_check_attribute"**: true/false, to check only the value of one attribute of the selected element
 * **"attribute_to_check"**: the name of the attribute to check for changes
+* **"login_needed"**: true/false, to work with websites that require a login. If true, browser metadata will be created to store login information (when deactivated it will automatically be deleted). To monitor this type of websites you have to: i) deactivate the headless mode, ii) start the web monitor program and pause the script when the browser is opened **FOR THE WEBSITE THAT REQUIRES LOGIN**, iii) log in to the website, iv) stop the web monitor program, v) activate headless mode, and vi) all done! you can start the web monitor program normally. 
 
 **EXAMPLE**
 ```sh
@@ -42,7 +43,9 @@ In the json file...
     "compose_body": true,
     "only_text": false,
     "all_elements": false,
-    "only_check_attribute": false,
-    "attribute_to_check": "-"
+    "idx_element": 1,
+    "only_check_attribute": true,
+    "attribute_to_check": "id",
+    "login_needed": false
 },
 ```
