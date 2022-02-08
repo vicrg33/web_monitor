@@ -59,6 +59,7 @@ def check_status(path, name):
         idx = websites_names.index(name)
         website = websites[idx]
     except:
+        print(website["name"] + " not detected. Waiting until the next load of the configuration file")
         time.sleep(iteration_wait * 1.5)
     email = website["email"]
     counter_fail = 0
