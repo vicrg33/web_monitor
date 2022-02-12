@@ -124,7 +124,10 @@ def check_status(path, name):
             if not website["all_elements"]:  # Check all the elements that match
                 element = element[website["idx_element"]]
         if website["only_check_attribute"]:  # To check only the value of an attribute
-            element = element.get(website["attribute_to_check"])
+            try:
+                element = element[0].get(website["attribute_to_check"])
+            except Exception:
+                element = element.get(website["attribute_to_check"])
         if element is not None and element != "None":
             if len(element) > 1:  # If there are more than one element...
                 for jj in range(website["parent_number"]):  # Get parent from element (if desired)
