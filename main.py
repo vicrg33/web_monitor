@@ -97,7 +97,10 @@ def check_status(path, name):
                 if website["attrib_key"] == "xpath":
                     time.sleep(5)
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
-                    html = driver_element.get_attribute('outerHTML')
+                    if website["only_check_attribute"]:  # To check only the value of an attribute
+                        html = driver_element.get_attribute(website["attribute_to_check"])
+                    else:
+                        html = driver_element.get_attribute('outerHTML')
                     driver.close()
                     driver.quit()
                 else:
