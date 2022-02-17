@@ -18,5 +18,3 @@ def telegram_notify(text):
     # sensitive information
 
     return None
-
-telegram_notify('AAAA')
