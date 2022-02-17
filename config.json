@@ -101,7 +101,7 @@
 			"attrib_key": "class",
 			"attrib_value": "button button--secondary button--with-second-line product-detail-show-similar-products product-detail-info__show-similar",
 			"parent_number": 0,
-			"refresh_interval": 600,
+			"refresh_interval": 60,
 			"name": "Zara - Mochila Cinco",
 			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
