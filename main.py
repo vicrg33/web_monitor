@@ -4,6 +4,7 @@ import time
 from bs4 import BeautifulSoup
 import pathlib
 import dependencies.notify_me as notify_me
+import dependencies.telegram_notify as telegram_notify
 import dependencies.set_rw as set_rw
 import dependencies.format_differences as format_differences
 import threading
@@ -174,6 +175,7 @@ def check_status(path, name):
                     email_body = format_differences.format_differences(orig.replace('\n', '').replace('\r', ''),
                                                                        element.replace('\n', '').replace('\r', ''), website["url"])
                     notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
                 else:
                     email_body = """\
                             <html>
@@ -193,6 +195,7 @@ def check_status(path, name):
                             </html>
                     """
                     notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
 
                 print("'" + website["name"] + "' has changed!!!\n")
                 time.sleep(300)
@@ -201,7 +204,8 @@ def check_status(path, name):
     else:
         counter_fail += 1
         if counter_fail == 10:
-            notify_me.notify_me(email, website["name"] + ' is broken :(', '', 'html')  # Send the email
+            notify_me.notify_me(email, website["name"] + ' is broken :(', website["url"], 'html')  # Send the email
+            telegram_notify.telegram_notify(website["name"] + ' is broken :( Link: ' + website["url"])  # Send a Telegram message
 
         print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
 
