@@ -6,7 +6,7 @@ import pathlib
 import dependencies.notify_me as notify_me
 import dependencies.telegram_notify as telegram_notify
 import dependencies.set_rw as set_rw
-import dependencies.format_differences as format_differences
+from dependencies.get_email_body import format_differences, simple_body
 import threading
 import platform
 import io
@@ -29,6 +29,7 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
+path_chrome_metadata = 'D:/WebMonitorMetadata/'
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
@@ -46,6 +47,53 @@ class CustomThread(threading.Thread):
             check_status(self.path, self.name)
 
 # ---------------------------------- FUNCTION DEFINITION FOR CHECKING THE CHANGES ------------------------------------ #
+
+
+def check_element(element, website, counter_fail, email):  # This will compare element with the stored element, if it do
+    # not exist store it...
+    # Load the previous web page versions stored
+    if element is not None and element != "None":
+        counter_fail = 0  # The site has been properly get, so set the counter to 0
+        files = list(pathlib.Path('data/').glob('*.html'))
+        files_name = [file.stem for file in files]
+        if not website["name"] in files_name:  # If the HTML file is not already stored, save it
+            save_html = io.open("data/" + website["name"] + '.html', "w", encoding="utf-8")
+            save_html.write(element)
+            save_html.close()
+            print("No registers for '" + website["name"] + "'. Register created\n")
+        else:  # Else, read the file
+            read_html = io.open("data/" + website["name"] + ".html", "r", encoding="utf-8")
+            orig = read_html.read()
+            read_html.close()
+            # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
+            if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
+                # not equal, notificate via console and email
+                shutil.copy(path + '\\data\\' + website["name"] + '.html',
+                          path + '\\data\\Previous versions\\' + website["name"] + '.html')
+                save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
+                save_html.write(element)
+                save_html.close()
+                if website["compose_body"]:  # Format the differences (old in red, new in green)
+                    email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
+                                                                       element.replace('\n', '').replace('\r', ''), website["url"])
+                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
+                else:
+                    email_body = simple_body(website["url"])
+                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
+
+                print("'" + website["name"] + "' has changed!!!\n")
+                time.sleep(300)
+            else:  # Else, just notificate via console
+                print("No changes for '" + website["name"] + "'\n")
+    else:
+        counter_fail += 1
+        if counter_fail == 10:
+            notify_me.notify_me(email, website["name"] + ' is broken :(', website["url"], 'html')  # Send the email
+            telegram_notify.telegram_notify(website["name"] + ' is broken :( Link: ' + website["url"])  # Send a Telegram message
+
+        print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
 
 
 def check_status(path, name):
@@ -86,10 +134,10 @@ def check_status(path, name):
                 options.add_argument('user-agent={0}'.format(user_agent))
                 options.add_argument("--disable-gpu")
                 if website["login_needed"]:
-                    if not os.path.exists(path + '\\chrome_tmp\\' + website["name"]):
-                        os.mkdir(path + '\\chrome_tmp\\' + website["name"])
+                    if not os.path.exists(path_chrome_metadata + '\\chrome_tmp\\' + website["name"]):
+                        os.mkdir(path_chrome_metadata + '\\chrome_tmp\\' + website["name"])
                     options.add_argument(
-                        "user-data-dir=" + path + "/chrome_tmp/" + website["name"])
+                        "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
                 service = Service('chromedriver.exe', log_path=os.devnull)
                 driver = webdriver.Chrome(options=options, service=service)
 
@@ -127,11 +175,30 @@ def check_status(path, name):
             element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
             if not website["all_elements"]:  # Check all the elements that match
                 element = element[website["idx_element"]]
-        if website["only_check_attribute"]:  # To check only the value of an attribute
-            try:
-                element = element[0].get(website["attribute_to_check"])
-            except Exception:
+
+        if website["only_check_attribute"]:  # To check only the value of an attribute. In this case, look for parents,
+            # and check only text do not make sense, so "check_element" will be called independently for this condition
+            try:  # Get the element desired attribute. This could be a bit difficult, so this nested try/Except are required
                 element = element.get(website["attribute_to_check"])
+                element = str(element)  # Turn element into a string to compare it easier with the previous version
+                check_element(element, website, counter_fail, email)  # Check differences in the element
+                time.sleep(website["refresh_interval"])
+                return
+            except Exception:
+                try:
+                    element = element[0].get(website["attribute_to_check"])
+                    element = str(element)  # Turn element into a string to compare it easier with the previous version
+                    check_element(element, website, counter_fail, email)  # Check differences in the element
+                    time.sleep(website["refresh_interval"])
+                    return
+                except Exception:  # This Exception catches the case when a ResultSet is returned. It is assumed that
+                    # the attribute cannot be obtained. A notification will be sent, as "element" will contains more
+                    # stuff than only the attribute to be checked
+                    element = str(element)  # Turn element into a string to compare it easier with the previous version
+                    check_element(element, website, counter_fail, email)  # Check differences in the element
+                    time.sleep(website["refresh_interval"])
+                    return
+
         if element is not None and element != "None":
             if len(element) > 1:  # If there are more than one element...
                 for jj in range(website["parent_number"]):  # Get parent from element (if desired)
@@ -140,74 +207,17 @@ def check_status(path, name):
             else:  # If there is only one...
                 for jj in range(website["parent_number"]):  # Get parent from element (if desired)
                     element = element.parent
+
         if website["only_text"]:  # This is for assessing the differences only in the text
             for kk in range(len(element)):
                 element[kk] = element[kk].get_text()
+
     else:  # Or the full HTML
         soup = BeautifulSoup(html, features="lxml")
         element = soup.find('html')
 
     element = str(element)  # Turn element into a string to compare it easier with the previous version
-
-    # Load the previous web page versions stored
-    if element is not None and element != "None":
-        counter_fail = 0
-        files = list(pathlib.Path('data/').glob('*.html'))
-        files_name = [file.stem for file in files]
-        if not website["name"] in files_name:  # If the HTML file is not already stored, save it
-            save_html = io.open("data/" + website["name"] + '.html', "w", encoding="utf-8")
-            save_html.write(element)
-            save_html.close()
-            print("No registers for '" + website["name"] + "'. Register created\n")
-        else:  # Else, read the file
-            read_html = io.open("data/" + website["name"] + ".html", "r", encoding="utf-8")
-            orig = read_html.read()
-            read_html.close()
-            # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
-            if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
-                # not equal, notificate via console and email
-                shutil.copy(path + '\\data\\' + website["name"] + '.html',
-                          path + '\\data\\Previous versions\\' + website["name"] + '.html')
-                save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
-                save_html.write(element)
-                save_html.close()
-                if website["compose_body"]:  # Format the differences (old in red, new in green)
-                    email_body = format_differences.format_differences(orig.replace('\n', '').replace('\r', ''),
-                                                                       element.replace('\n', '').replace('\r', ''), website["url"])
-                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
-                else:
-                    email_body = """\
-                            <html>
-                                <head>
-                                    <meta http-equiv="Content-Type"
-                                          content="text/html; charset=utf-8" />
-                                    <style type="text/css">
-                                        .diff-insert{background-color:#82F67C}
-                                        .diff-del{background-color:#FF6666}
-                                        .diff-insert-formatting{background-color:#82F67C}
-                                        .diff-delete-formatting{background-color:#FF6666}
-                                    </style>
-                                </head>
-                                <body>
-                                    <a href='""" + website["url"] + """'>Visit web page</a>
-                                </body>
-                            </html>
-                    """
-                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
-
-                print("'" + website["name"] + "' has changed!!!\n")
-                time.sleep(300)
-            else:  # Else, just notificate via console
-                print("No changes for '" + website["name"] + "'\n")
-    else:
-        counter_fail += 1
-        if counter_fail == 10:
-            notify_me.notify_me(email, website["name"] + ' is broken :(', website["url"], 'html')  # Send the email
-            telegram_notify.telegram_notify(website["name"] + ' is broken :( Link: ' + website["url"])  # Send a Telegram message
-
-        print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
+    check_element(element, website, counter_fail, email)  # Check differences in the element
 
     # Wait the desired time
     time.sleep(website["refresh_interval"])
@@ -296,11 +306,11 @@ while True:
 
     # Check if there are stored browser metadata that are not currently in the monitoring list (neither active nor
     # inactive)...
-    folders = list(set(pathlib.Path('chrome_tmp/').glob('*/')))
+    folders = list(set((path_chrome_metadata + 'chrome_tmp/').glob('*/')))
     for folder in folders:
         if folder.stem not in thread_pool_names:  # If so, remove the files
             try:
-                shutil.rmtree(path + '\\chrome_tmp\\' + file.stem, onerror=set_rw.set_rw)
+                shutil.rmtree(path_chrome_metadata + '\\chrome_tmp\\' + file.stem, onerror=set_rw.set_rw)
                 print("Removing browser metadata of '" + file.stem + "'\n")
             except Exception:
                 pass
