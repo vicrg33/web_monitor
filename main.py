@@ -25,11 +25,11 @@ import re
 # Setting path for Windows and Mac
 path = []
 if platform.system() == 'Windows':
-    path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+    path = 'D:\\OneDrive - gib.tel.uva.es\\Personal\\Scripts Utiles\\web_monitor'
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
 iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
-path_chrome_metadata = 'D:/WebMonitorMetadata/'
+path_chrome_metadata = 'D:\\WebMonitorMetadata\\'
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
@@ -54,15 +54,15 @@ def check_element(element, website, counter_fail, email):  # This will compare e
     # Load the previous web page versions stored
     if element is not None and element != "None":
         counter_fail = 0  # The site has been properly get, so set the counter to 0
-        files = list(pathlib.Path('data/').glob('*.html'))
+        files = list(pathlib.Path('data\\').glob('*.html'))
         files_name = [file.stem for file in files]
         if not website["name"] in files_name:  # If the HTML file is not already stored, save it
-            save_html = io.open("data/" + website["name"] + '.html', "w", encoding="utf-8")
+            save_html = io.open("data\\" + website["name"] + '.html', "w", encoding="utf-8")
             save_html.write(element)
             save_html.close()
             print("No registers for '" + website["name"] + "'. Register created\n")
         else:  # Else, read the file
-            read_html = io.open("data/" + website["name"] + ".html", "r", encoding="utf-8")
+            read_html = io.open("data\\" + website["name"] + ".html", "r", encoding="utf-8")
             orig = read_html.read()
             read_html.close()
             # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
@@ -70,7 +70,7 @@ def check_element(element, website, counter_fail, email):  # This will compare e
                 # not equal, notificate via console and email
                 shutil.copy(path + '\\data\\' + website["name"] + '.html',
                           path + '\\data\\Previous versions\\' + website["name"] + '.html')
-                save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
+                save_html = io.open("data\\" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
                 save_html.write(element)
                 save_html.close()
                 if website["compose_body"]:  # Format the differences (old in red, new in green)
@@ -98,7 +98,7 @@ def check_element(element, website, counter_fail, email):  # This will compare e
 
 def check_status(path, name):
     # Json load and info storing
-    json_info = open(path + '/config.json')
+    json_info = open(path + '\\config.json')
     json_data = json.load(json_info)
     json_info.close()
     websites = json_data["websites"]
@@ -137,7 +137,7 @@ def check_status(path, name):
                     if not os.path.exists(path_chrome_metadata + '\\chrome_tmp\\' + website["name"]):
                         os.mkdir(path_chrome_metadata + '\\chrome_tmp\\' + website["name"])
                     options.add_argument(
-                        "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
+                        "user-data-dir=" + path_chrome_metadata + "\\chrome_tmp\\" + website["name"])
                 service = Service('chromedriver.exe', log_path=os.devnull)
                 driver = webdriver.Chrome(options=options, service=service)
 
@@ -225,7 +225,7 @@ def check_status(path, name):
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
 # Initial json load and info storing
-json_info = open(path + '/config.json')
+json_info = open(path + '\\config.json')
 websites = json.load(json_info)["websites"]
 json_info.close()
 websites_names = [website['name'] for website in websites]  # Needed for comparisons with next versions of the json file
@@ -246,7 +246,7 @@ for idx in range(len(websites)):
 # Infinite loop for adding/removing/activating/deactivating websites
 while True:
     # New json version load and info storing. It could have changed or not (we will check it)
-    json_info = open(path + '/config.json')
+    json_info = open(path + '\\config.json')
     websites_new = json.load(json_info)["websites"]
     json_info.close()
     websites_new_names = [website['name'] for website in websites_new]
@@ -293,7 +293,7 @@ while True:
                 print("Web scrapping for '" + name + "' has been stopped\n")
 
     # Check if there are stored websites that are not currently in the monitoring list (neither active nor inactive)...
-    files = list(set(pathlib.Path('data/').glob('*.html')))
+    files = list(set(pathlib.Path('data\\').glob('*.html')))
     for file in files:
         if file.stem not in thread_pool_names:  # If so, remove the files. Field "stem" is the name without the suffix
             # (.html in this case)
@@ -306,7 +306,7 @@ while True:
 
     # Check if there are stored browser metadata that are not currently in the monitoring list (neither active nor
     # inactive)...
-    folders = list(set((path_chrome_metadata + 'chrome_tmp/').glob('*/')))
+    folders = list(set((path_chrome_metadata + 'chrome_tmp\\').glob('*\\')))
     for folder in folders:
         if folder.stem not in thread_pool_names:  # If so, remove the files
             try:
