@@ -38,11 +38,11 @@ def notify_me(mailto, subject, body, mode='plain'):
     # ============================================ VARIABLE INITIALIZATION =========================================== #
     mailfrom = "medusa_py@hotmail.com"  # Mail created ad-hoc for this purpose only
     password = "1234abcd1234abcd"       # Ultra high secure password
-    host = "smtp.live.com"
+    host = "smtp-mail.outlook.com"
 
     # =============================================== MAIL SENDING =================================================== #
     # SMTP connection
-    server = smtplib.SMTP(host, 587)
+    server = smtplib.SMTP(host, 587, "YOUR_USERNAME", timeout=120)
     server.starttls()
     server.login(mailfrom, password)
     # Message creation
@@ -57,5 +57,5 @@ def notify_me(mailto, subject, body, mode='plain'):
       mailfrom, 
       mailto, 
       msg.as_string())
-    # Connection closing
+    # Connection closing    print(H)
     server.quit()

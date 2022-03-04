@@ -10,7 +10,7 @@ data/
 venv/
 firefox_profile/
 test_functions/
-chrome_tmp/
+chrome_tmp_TMP/
 
 # Compiled Java class files
 *.class
@@ -52,3 +52,4 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
+/bot_data.json
