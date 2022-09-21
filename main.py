@@ -25,9 +25,9 @@ import re
 # Setting path for Windows and Mac
 path = []
 if platform.system() == 'Windows':
-    path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+    path = 'D:/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
 elif platform.system() == 'Darwin':
-    path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+    path = '/Users/Vic/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
 iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
 path_chrome_metadata = 'D:/WebMonitorMetadata/'
 
@@ -150,11 +150,11 @@ def check_status(path, name):
                         html = driver_element.get_attribute(website["attribute_to_check"])
                     else:
                         html = driver_element.get_attribute('outerHTML')
-                    driver.close()
+                    # driver.close()
                     driver.quit()
                 else:
                     html = driver.page_source
-                    driver.close()
+                    # driver.close()
                     driver.quit()
 
         except Exception as e:
@@ -206,7 +206,10 @@ def check_status(path, name):
                         element[kk] = element[kk].parent
             else:  # If there is only one...
                 for jj in range(website["parent_number"]):  # Get parent from element (if desired)
-                    element = element.parent
+                    try:
+                        element = element[0].parent
+                    except:
+                        element = element.parent
 
         if website["only_text"]:  # This is for assessing the differences only in the text
             for kk in range(len(element)):
