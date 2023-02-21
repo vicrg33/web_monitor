@@ -109,7 +109,7 @@ def check_status(path, name, driver):
         idx = websites_names.index(name)
         website = websites[idx]
     except:
-        print(website["name"] + " not detected. Waiting until the next load of the configuration file")
+        print("Website not detected. Waiting until the next load of the configuration file\n")
         time.sleep(iteration_wait * 1.5)
     email = website["email"]
     counter_fail = 0
@@ -327,7 +327,7 @@ while True:
     for file in files:
         if file.stem not in thread_pool_names:  # If so, remove the files. Field "stem" is the name without the suffix
             # (.html in this case)
-            print("Removing file of '" + file.stem + "'\n")
+            print("Removing files from '" + file.stem + "'\n")
             os.remove(file)
             try:
                 os.remove(path + '/data/Previous versions/' + file.stem + '.html')
