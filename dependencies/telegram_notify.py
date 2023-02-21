@@ -6,9 +6,9 @@ import platform
 def telegram_notify(text):
     # Setting path for Windows and Mac
     if platform.system() == 'Windows':
-        path = 'D:/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+        path = 'D:/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
     elif platform.system() == 'Darwin':
-        path = '/Users/Vic/OneDrive - gib.tel.uva.es/Personal/Scripts Utiles/web_monitor'
+        path = '/Users/Vic/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
 
     # Load json with the sensitive data
     json_info = open(path + '/bot_data.json')
