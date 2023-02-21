@@ -43,13 +43,14 @@ class CustomThread(threading.Thread):
         self.stop = False
 
     def run(self):
+        driver = []
         while not self.stop:
-            check_status(self.path, self.name)
+            driver = check_status(self.path, self.name, driver)
 
 # ---------------------------------- FUNCTION DEFINITION FOR CHECKING THE CHANGES ------------------------------------ #
 
 
-def check_element(element, website, counter_fail, email):  # This will compare element with the stored element, if it do
+def check_element(element, website, counter_fail, email):  # This will compare element with the stored element, if it does
     # not exist store it...
     # Load the previous web page versions stored
     if element is not None and element != "None":
@@ -96,7 +97,7 @@ def check_element(element, website, counter_fail, email):  # This will compare e
         print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
 
 
-def check_status(path, name):
+def check_status(path, name, driver):
     # Json load and info storing
     json_info = open(path + '/config.json')
     json_data = json.load(json_info)
@@ -113,56 +114,80 @@ def check_status(path, name):
     email = website["email"]
     counter_fail = 0
 
-    # Try to retrieve the website. If fails, wait 60 sec and try again. If success, break the infinite loop
-    while True:
-        try:
-            # Retrieving website
-            if not website["javascript"]:
-                user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-                headers = {'User-Agent': user_agent}
+    if not driver:
+        # Try to retrieve the website. If fails, wait 60 sec and try again. If success, break the infinite loop
+        while True:
+            try:
+                # Retrieving website
+                if not website["javascript"]:
+                    user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+                    headers = {'User-Agent': user_agent}
 
-                request = urllib.request.Request(website["url"], None, headers)  # The assembled request
-                html = urllib.request.urlopen(request).read()
+                    request = urllib.request.Request(website["url"], None, headers)  # The assembled request
+                    html = urllib.request.urlopen(request).read()
 
-            else:
-
-                options = Options()
-                options.add_argument('--headless=new')
-                options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
-                options.add_experimental_option('excludeSwitches', ['enable-logging'])
-                user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
-                options.add_argument('user-agent={0}'.format(user_agent))
-                options.add_argument("--disable-gpu")
-                if website["login_needed"]:
-                    if not os.path.exists(path_chrome_metadata + '/chrome_tmp/' + website["name"]):
-                        os.mkdir(path_chrome_metadata + '/chrome_tmp/' + website["name"])
-                    options.add_argument(
-                        "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
-                service = Service('chromedriver.exe', log_path=os.devnull)
-                driver = webdriver.Chrome(options=options, service=service)
-
-                driver.get(website["url"])
-                time.sleep(10)
-                if website["attrib_key"] == "xpath":
-                    time.sleep(5)
-                    driver_element = driver.find_element(By.XPATH, website["attrib_value"])
-                    if website["only_check_attribute"]:  # To check only the value of an attribute
-                        html = driver_element.get_attribute(website["attribute_to_check"])
-                    else:
-                        html = driver_element.get_attribute('outerHTML')
-                    # driver.close()
-                    driver.quit()
                 else:
-                    html = driver.page_source
-                    # driver.close()
-                    driver.quit()
 
-        except Exception as e:
-            print(e)
-            time.sleep(60)
-            continue
+                    options = Options()
+                    options.add_argument('--headless=new')
+                    options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
+                    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                    user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
+                    options.add_argument('user-agent={0}'.format(user_agent))
+                    options.add_argument("--disable-gpu")
+                    if website["login_needed"]:
+                        if not os.path.exists(path_chrome_metadata + '/chrome_tmp/' + website["name"]):
+                            os.mkdir(path_chrome_metadata + '/chrome_tmp/' + website["name"])
+                        options.add_argument(
+                            "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
+                    service = Service('chromedriver.exe', log_path=os.devnull)
+                    driver = webdriver.Chrome(options=options, service=service)
+
+                    driver.get(website["url"])
+                    time.sleep(10)
+                    if website["attrib_key"] == "xpath":
+                        time.sleep(5)
+                        driver_element = driver.find_element(By.XPATH, website["attrib_value"])
+                        if website["only_check_attribute"]:  # To check only the value of an attribute
+                            html = driver_element.get_attribute(website["attribute_to_check"])
+                        else:
+                            html = driver_element.get_attribute('outerHTML')
+                        # driver.close()
+                        # driver.quit()
+                    else:
+                        html = driver.page_source
+                        # driver.close()
+                        # driver.quit()
+
+            except Exception as e:
+                print(e)
+                time.sleep(60)
+                continue
+            else:
+                break
+    else:
+        # Retrieving website
+        if not website["javascript"]:
+            user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+            headers = {'User-Agent': user_agent}
+
+            request = urllib.request.Request(website["url"], None,
+                                             headers)  # The assembled request
+            html = urllib.request.urlopen(request).read()
         else:
-            break
+            driver.refresh()
+            if website["attrib_key"] == "xpath":
+                time.sleep(5)
+                driver_element = driver.find_element(By.XPATH, website["attrib_value"])
+                if website[
+                    "only_check_attribute"]:  # To check only the value of an attribute
+                    html = driver_element.get_attribute(website["attribute_to_check"])
+                else:
+                    html = driver_element.get_attribute('outerHTML')
+                # driver.close()
+                # driver.quit()
+            else:
+                html = driver.page_source
 
     # Getting the desired element...
     if website["attrib_key"] != 'all' and not website["attrib_key"] == "xpath":  # One element, defined by "element", "attrib-key", and "attrib_value"
@@ -224,6 +249,8 @@ def check_status(path, name):
 
     # Wait the desired time
     time.sleep(website["refresh_interval"])
+
+    return driver
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
