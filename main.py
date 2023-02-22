@@ -1,24 +1,15 @@
 import json
-import urllib.request
 import time
-from bs4 import BeautifulSoup
 import pathlib
-import dependencies.notify_me as notify_me
-import dependencies.telegram_notify as telegram_notify
 import dependencies.set_rw as set_rw
-from dependencies.get_email_body import format_differences, simple_body
 import threading
 import platform
-import io
 import numpy as np
 import os
 import shutil
 from random import uniform
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-import re
+import check_status
+
 
 # ------------------------------------------------------ PARAMETERS -------------------------------------------------- #
 
@@ -31,8 +22,8 @@ elif platform.system() == 'Darwin':
 iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
 path_chrome_metadata = 'D:/WebMonitorMetadata/'
 
-# ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
+# ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
 class CustomThread(threading.Thread):
 
@@ -45,212 +36,8 @@ class CustomThread(threading.Thread):
     def run(self):
         driver = []
         while not self.stop:
-            driver = check_status(self.path, self.name, driver)
+            driver = check_status.check_status(self.path, path_chrome_metadata, self.name, driver, iteration_wait)
 
-# ---------------------------------- FUNCTION DEFINITION FOR CHECKING THE CHANGES ------------------------------------ #
-
-
-def check_element(element, website, counter_fail, email):  # This will compare element with the stored element, if it does
-    # not exist store it...
-    # Load the previous web page versions stored
-    if element is not None and element != "None":
-        counter_fail = 0  # The site has been properly get, so set the counter to 0
-        files = list(pathlib.Path('data/').glob('*.html'))
-        files_name = [file.stem for file in files]
-        if not website["name"] in files_name:  # If the HTML file is not already stored, save it
-            save_html = io.open("data/" + website["name"] + '.html', "w", encoding="utf-8")
-            save_html.write(element)
-            save_html.close()
-            print("No registers for '" + website["name"] + "'. Register created\n")
-        else:  # Else, read the file
-            read_html = io.open("data/" + website["name"] + ".html", "r", encoding="utf-8")
-            orig = read_html.read()
-            read_html.close()
-            # And compare with the new one. Storing the string alters '\n', and '\r', so remove them from both versions when comparing
-            if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
-                # not equal, notificate via console and email
-                shutil.copy(path + '/data/' + website["name"] + '.html',
-                          path + '/data/Previous versions/' + website["name"] + '.html')
-                save_html = io.open("data/" + website["name"] + ".html", "w", encoding="utf-8")  # Save the new web page version
-                save_html.write(element)
-                save_html.close()
-                if website["compose_body"]:  # Format the differences (old in red, new in green)
-                    email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
-                                                                       element.replace('\n', '').replace('\r', ''), website["url"])
-                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
-                else:
-                    email_body = simple_body(website["url"])
-                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
-
-                print("'" + website["name"] + "' has changed!!!\n")
-                time.sleep(300)
-            else:  # Else, just notificate via console
-                print("No changes for '" + website["name"] + "'\n")
-    else:
-        counter_fail += 1
-        if counter_fail == 10:
-            notify_me.notify_me(email, website["name"] + ' is broken :(', website["url"], 'html')  # Send the email
-            telegram_notify.telegram_notify(website["name"] + ' is broken :( Link: ' + website["url"])  # Send a Telegram message
-
-        print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
-
-
-def check_status(path, name, driver):
-    # Json load and info storing
-    json_info = open(path + '/config.json')
-    json_data = json.load(json_info)
-    json_info.close()
-    websites = json_data["websites"]
-    websites_names = [website['name'] for website in websites]
-    # If the website could not be found, wait to allow the main script to remove it
-    try:
-        idx = websites_names.index(name)
-        website = websites[idx]
-    except:
-        print("Website not detected. Waiting until the next load of the configuration file\n")
-        time.sleep(iteration_wait * 1.5)
-    email = website["email"]
-    counter_fail = 0
-
-    if not driver:
-        # Try to retrieve the website. If fails, wait 60 sec and try again. If success, break the infinite loop
-        while True:
-            try:
-                # Retrieving website
-                if not website["javascript"]:
-                    user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-                    headers = {'User-Agent': user_agent}
-
-                    request = urllib.request.Request(website["url"], None, headers)  # The assembled request
-                    html = urllib.request.urlopen(request).read()
-
-                else:
-
-                    options = Options()
-                    options.add_argument('--headless=new')
-                    options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
-                    options.add_experimental_option('excludeSwitches', ['enable-logging'])
-                    user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
-                    options.add_argument('user-agent={0}'.format(user_agent))
-                    options.add_argument("--disable-gpu")
-                    if website["login_needed"]:
-                        if not os.path.exists(path_chrome_metadata + '/chrome_tmp/' + website["name"]):
-                            os.mkdir(path_chrome_metadata + '/chrome_tmp/' + website["name"])
-                        options.add_argument(
-                            "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
-                    service = Service('chromedriver.exe', log_path=os.devnull)
-                    driver = webdriver.Chrome(options=options, service=service)
-
-                    driver.get(website["url"])
-                    time.sleep(10)
-                    if website["attrib_key"] == "xpath":
-                        time.sleep(5)
-                        driver_element = driver.find_element(By.XPATH, website["attrib_value"])
-                        if website["only_check_attribute"]:  # To check only the value of an attribute
-                            html = driver_element.get_attribute(website["attribute_to_check"])
-                        else:
-                            html = driver_element.get_attribute('outerHTML')
-                        # driver.close()
-                        # driver.quit()
-                    else:
-                        html = driver.page_source
-                        # driver.close()
-                        # driver.quit()
-
-            except Exception as e:
-                print(e)
-                time.sleep(60)
-                continue
-            else:
-                break
-    else:
-        # Retrieving website
-        if not website["javascript"]:
-            user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-            headers = {'User-Agent': user_agent}
-
-            request = urllib.request.Request(website["url"], None,
-                                             headers)  # The assembled request
-            html = urllib.request.urlopen(request).read()
-        else:
-            driver.refresh()
-            if website["attrib_key"] == "xpath":
-                time.sleep(5)
-                driver_element = driver.find_element(By.XPATH, website["attrib_value"])
-                if website[
-                    "only_check_attribute"]:  # To check only the value of an attribute
-                    html = driver_element.get_attribute(website["attribute_to_check"])
-                else:
-                    html = driver_element.get_attribute('outerHTML')
-                # driver.close()
-                # driver.quit()
-            else:
-                html = driver.page_source
-
-    # Getting the desired element...
-    if website["attrib_key"] != 'all' and not website["attrib_key"] == "xpath":  # One element, defined by "element", "attrib-key", and "attrib_value"
-        soup = BeautifulSoup(html, features="lxml")
-        if website["attrib_key"] == "text":  # This is for selecting an element by text
-            element = soup.find_all(website["element"], text=re.compile('.*' + website["attrib_value"] + '.*'))
-            if not website["all_elements"]:  # Check all the elements that match
-                element = element[website["idx_element"]]
-        else:
-            element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
-            if not website["all_elements"]:  # Check all the elements that match
-                element = element[website["idx_element"]]
-
-        if website["only_check_attribute"]:  # To check only the value of an attribute. In this case, look for parents,
-            # and check only text do not make sense, so "check_element" will be called independently for this condition
-            try:  # Get the element desired attribute. This could be a bit difficult, so this nested try/Except are required
-                element = element.get(website["attribute_to_check"])
-                element = str(element)  # Turn element into a string to compare it easier with the previous version
-                check_element(element, website, counter_fail, email)  # Check differences in the element
-                time.sleep(website["refresh_interval"])
-                return
-            except Exception:
-                try:
-                    element = element[0].get(website["attribute_to_check"])
-                    element = str(element)  # Turn element into a string to compare it easier with the previous version
-                    check_element(element, website, counter_fail, email)  # Check differences in the element
-                    time.sleep(website["refresh_interval"])
-                    return
-                except Exception:  # This Exception catches the case when a ResultSet is returned. It is assumed that
-                    # the attribute cannot be obtained. A notification will be sent, as "element" will contains more
-                    # stuff than only the attribute to be checked
-                    element = str(element)  # Turn element into a string to compare it easier with the previous version
-                    check_element(element, website, counter_fail, email)  # Check differences in the element
-                    time.sleep(website["refresh_interval"])
-                    return
-
-        if element is not None and element != "None":
-            if len(element) > 1:  # If there are more than one element...
-                for jj in range(website["parent_number"]):  # Get parent from element (if desired)
-                    for kk in range(len(element)):
-                        element[kk] = element[kk].parent
-            else:  # If there is only one...
-                for jj in range(website["parent_number"]):  # Get parent from element (if desired)
-                    try:
-                        element = element[0].parent
-                    except:
-                        element = element.parent
-
-        if website["only_text"]:  # This is for assessing the differences only in the text
-            for kk in range(len(element)):
-                element[kk] = element[kk].get_text()
-
-    else:  # Or the full HTML
-        soup = BeautifulSoup(html, features="lxml")
-        element = soup.find('html')
-
-    element = str(element)  # Turn element into a string to compare it easier with the previous version
-    check_element(element, website, counter_fail, email)  # Check differences in the element
-
-    # Wait the desired time
-    time.sleep(website["refresh_interval"])
-
-    return driver
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 

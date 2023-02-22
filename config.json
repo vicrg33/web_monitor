@@ -208,6 +208,25 @@
 			"only_check_attribute": false,
 			"attribute_to_check": "class",
 			"login_needed": false
+		},
+		{
+			"url": "http://gib.tel.uva.es/members.php",
+			"element": "div",
+			"attrib_key": "id",
+			"attrib_value": "wrapper",
+			"parent_number": 0,
+			"refresh_interval": 15,
+			"name": "Test 1",
+			"active": true,
+			"email" : "vic1993victor1993@gmail.com",
+			"javascript" : true,
+			"compose_body": false,
+			"only_text": false,
+			"all_elements": false,
+			"idx_element": 0,
+			"only_check_attribute": false,
+			"attribute_to_check": "class",
+			"login_needed": false
 		}
 	]
 }
