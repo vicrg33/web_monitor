@@ -5,7 +5,7 @@ import shutil
 import buy_item
 import dependencies.notify_me as notify_me
 import dependencies.telegram_notify as telegram_notify
-from dependencies.get_email_body import format_differences, simple_body
+from dependencies.get_email_body import simple_body
 import time
 
 
@@ -30,15 +30,9 @@ def check_element(path, element, website, counter_fail, email, driver=[]):  # Th
                 # not equal, notificate via console and email
 
                 # Notify
-                if website["compose_body"]:  # Format the differences (old in red, new in green)
-                    email_body = format_differences(orig.replace('\n', '').replace('\r', ''),
-                                                                       element.replace('\n', '').replace('\r', ''), website["url"])
-                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
-                else:
-                    email_body = simple_body(website["url"])
-                    notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
-                    telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
+                email_body = simple_body(website["url"])
+                notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
+                telegram_notify.telegram_notify(website["name"] + ' has changed! Link: ' + website["url"])  # Send a Telegram message
 
                 # # Buy the item (only in zara sites)
                 # try:
@@ -56,7 +50,7 @@ def check_element(path, element, website, counter_fail, email, driver=[]):  # Th
                 save_html.close()
 
                 print("'" + website["name"] + "' has changed!!!\n")
-                time.sleep(300)
+                # time.sleep(300)
             else:  # Else, just notificate via console
                 print("No changes for '" + website["name"] + "'\n")
     else:
