@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import re
 import check_element
 import os
@@ -45,11 +46,12 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                         os.mkdir(path_chrome_metadata + '/chrome_tmp/' + website["name"])
                     options.add_argument(
                         "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
-                service = Service('chromedriver.exe', log_path=os.devnull)
-                driver = webdriver.Chrome(options=options, service=service)
+                # service = Service('chromedriver.exe', log_path=os.devnull)
+                driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
 
                 driver.get(website["url"])
-                time.sleep(10)
+                time.sleep(website["waiting_time"] + 10)
+
                 if website["attrib_key"] == "xpath":
                     time.sleep(5)
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
@@ -100,7 +102,14 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
         else:
             element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
             if not website["all_elements"]:  # Check all the elements that match
-                element = element[website["idx_element"]]
+                try:
+                    element = element[website["idx_element"]]
+                except Exception:
+                    # This Exception handles the case when the element cannot be obtained. The object will be retrieved
+                    # again and again, so I will inform it in the command line
+                    print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+                    time.sleep(website["refresh_interval"])
+                    return
 
         if website["only_check_attribute"]:  # To check only the value of an attribute. In this case, look for parents,
             # and check only text do not make sense, so "check_element" will be called independently for this condition
@@ -118,7 +127,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                     time.sleep(website["refresh_interval"])
                     return
                 except Exception:  # This Exception catches the case when a ResultSet is returned. It is assumed that
-                    # the attribute cannot be obtained. A notification will be sent, as "element" will contains more
+                    # the attribute cannot be obtained. The notification will be sent, as "element" will contain more
                     # stuff than only the attribute to be checked
                     element = str(element)  # Turn element into a string to compare it easier with the previous version
                     check_element.check_element(path, element, website, counter_fail, email)  # Check differences in the element

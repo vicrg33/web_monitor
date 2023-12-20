@@ -29,6 +29,14 @@ def check_element(path, element, website, counter_fail, email, driver=[]):  # Th
             if str(element).replace('\n', '').replace('\r', '') != orig.replace('\n', '').replace('\r', ''):  # If the strings are
                 # not equal, notificate via console and email
 
+                if website["double_check"]:
+                    if not 'COUNTER_' + website["name"].replace(" ", "_") in globals():
+                        globals()['COUNTER_' + website["name"].replace(" ", "_")] = True
+                        print("'" + website["name"] + "' has changed. We will check once again before notifying...\n")
+                        return
+                    else:
+                        del globals()['COUNTER_' + website["name"].replace(" ", "_")]
+
                 # Notify
                 email_body = simple_body(website["url"])
                 notify_me.notify_me(email, website["name"] + ' has changed!', email_body, 'html')  # Send the email
@@ -51,7 +59,11 @@ def check_element(path, element, website, counter_fail, email, driver=[]):  # Th
 
                 print("'" + website["name"] + "' has changed!!!\n")
                 # time.sleep(300)
-            else:  # Else, just notificate via console
+            else:  # Else, jnust notificate via console
+
+                if 'COUNTER_' + website["name"].replace(" ", "_") in globals():
+                    del globals()['COUNTER_' + website["name"]]
+
                 print("No changes for '" + website["name"] + "'\n")
     else:
         counter_fail += 1

@@ -25,6 +25,7 @@ In the json file...
 * **"attribute_to_check"**: the name of the attribute to check for changes
 * **"login_needed"**: true/false, to work with websites that require a login. If true, browser metadata will be created to store login information (when deactivated it will automatically be deleted). To monitor this type of websites you have to: i) deactivate the headless mode, ii) start the web monitor program and pause the script when the browser is opened **FOR THE WEBSITE THAT REQUIRES LOGIN**, iii) log in to the website, iv) stop the web monitor program, v) activate headless mode, and vi) all done! you can start the web monitor program normally. 
 * **"waiting_time"**: int, time to wait for the website to load. 
+* **"double_check"**: bool, the changes will be checked twice before notifying, for pages that spuriously change sometimes
 
 **EXAMPLE**
 ```sh
@@ -43,6 +44,8 @@ In the json file...
     "idx_element": 1,
     "only_check_attribute": true,
     "attribute_to_check": "id",
-    "login_needed": false
+    "login_needed": false,
+    "waiting_time": 5,
+    "double_check": True
 },
 ```
