@@ -1,13 +1,13 @@
 {
 	"websites": [
 		{
-			"url": "https://www.stradivarius.com/es/body-asimetrico-transparencias-l08120050?colorId=001&categoryId=0",
-			"element": "div",
-			"attrib_key": "data-text",
-			"attrib_value": "M",
-			"parent_number": 1,
-			"refresh_interval": 5,
-			"name": "Stradi M",
+			"url": "https://www.zara.com/es/es/chaqueta-larga-punto-p05536122.html?v1=309258606",
+			"element": "li",
+			"attrib_key": "id",
+			"attrib_value": "product-size-selector-309258606-item-0",
+			"parent_number": 0,
+			"refresh_interval": 10,
+			"name": "Zara Chaqueta S",
 			"active": true,
 			"email" : "vic1993victor1993@gmail.com",
 			"only_text": false,
@@ -16,8 +16,8 @@
 			"only_check_attribute": false,
 			"attribute_to_check": "class",
 			"login_needed": false,
-			"waiting_time": 15,
-			"double_check": true
+			"waiting_time": 10,
+			"double_check": false
 		}
 	]
 }

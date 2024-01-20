@@ -90,7 +90,13 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
             # driver.close()
             # driver.quit()
         else:
-            html = driver.page_source
+            try:
+                html = driver.page_source
+            except Exception:
+                print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+                time.sleep(website["refresh_interval"])
+                return
+
 
     # Getting the desired element...
     if website["attrib_key"] != 'all' and not website["attrib_key"] == "xpath": # One element, defined by "element", "attrib-key", and "attrib_value"
