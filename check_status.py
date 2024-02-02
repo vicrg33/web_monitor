@@ -73,29 +73,34 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
             else:
                 break
     else:
-        # Retrieving website
-        driver.get(website["url"])
+        try:
+            # Retrieving website
+            driver.get(website["url"])
 
-        # Wait for the website to be loaded
-        if website["waiting_time"] > 0:
-            time.sleep(website["waiting_time"])
+            # Wait for the website to be loaded
+            if website["waiting_time"] > 0:
+                time.sleep(website["waiting_time"])
 
-        if website["attrib_key"] == "xpath":
-            time.sleep(5)
-            driver_element = driver.find_element(By.XPATH, website["attrib_value"])
-            if website["only_check_attribute"]:  # To check only the value of an attribute
-                html = driver_element.get_attribute(website["attribute_to_check"])
+            if website["attrib_key"] == "xpath":
+                time.sleep(5)
+                try:
+                    driver_element = driver.find_element(By.XPATH, website["attrib_value"])
+                except Exception:
+                    print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+                    time.sleep(website["refresh_interval"])
+                    return
+                if website["only_check_attribute"]:  # To check only the value of an attribute
+                    html = driver_element.get_attribute(website["attribute_to_check"])
+                else:
+                    html = driver_element.get_attribute('outerHTML')
+                # driver.close()
+                # driver.quit()
             else:
-                html = driver_element.get_attribute('outerHTML')
-            # driver.close()
-            # driver.quit()
-        else:
-            try:
                 html = driver.page_source
-            except Exception:
-                print("WARNING! The website " + website["name"] + " has failed. Retrying...")
-                time.sleep(website["refresh_interval"])
-                return
+        except Exception:
+            print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+            time.sleep(website["refresh_interval"])
+            return
 
 
     # Getting the desired element...
