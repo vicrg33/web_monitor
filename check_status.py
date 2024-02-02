@@ -68,39 +68,30 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
 
             except Exception as e:
                 print(e)
-                time.sleep(60)
+                time.sleep(30)
                 continue
             else:
                 break
     else:
-        try:
-            # Retrieving website
-            driver.get(website["url"])
+        # Retrieving website
+        driver.get(website["url"])
 
-            # Wait for the website to be loaded
-            if website["waiting_time"] > 0:
-                time.sleep(website["waiting_time"])
+        # Wait for the website to be loaded
+        if website["waiting_time"] > 0:
+            time.sleep(website["waiting_time"])
 
-            if website["attrib_key"] == "xpath":
-                time.sleep(5)
-                try:
-                    driver_element = driver.find_element(By.XPATH, website["attrib_value"])
-                except Exception:
-                    print("WARNING! The website " + website["name"] + " has failed. Retrying...")
-                    time.sleep(website["refresh_interval"])
-                    return
-                if website["only_check_attribute"]:  # To check only the value of an attribute
-                    html = driver_element.get_attribute(website["attribute_to_check"])
-                else:
-                    html = driver_element.get_attribute('outerHTML')
-                # driver.close()
-                # driver.quit()
+        if website["attrib_key"] == "xpath":
+            time.sleep(5)
+            driver_element = driver.find_element(By.XPATH, website["attrib_value"])
+            if website["only_check_attribute"]:  # To check only the value of an attribute
+                html = driver_element.get_attribute(website["attribute_to_check"])
             else:
-                html = driver.page_source
-        except Exception:
-            print("WARNING! The website " + website["name"] + " has failed. Retrying...")
-            time.sleep(website["refresh_interval"])
-            return
+                html = driver_element.get_attribute('outerHTML')
+            # driver.close()
+            # driver.quit()
+        else:
+            html = driver.page_source
+
 
 
     # Getting the desired element...
@@ -113,14 +104,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
         else:
             element = soup.find_all(website["element"], {website["attrib_key"]: website["attrib_value"]})
             if not website["all_elements"]:  # Check all the elements that match
-                try:
-                    element = element[website["idx_element"]]
-                except Exception:
-                    # This Exception handles the case when the element cannot be obtained. The object will be retrieved
-                    # again and again, so I will inform it in the command line
-                    print("WARNING! The website " + website["name"] + " has failed. Retrying...")
-                    time.sleep(website["refresh_interval"])
-                    return
+                element = element[website["idx_element"]]
 
         if website["only_check_attribute"]:  # To check only the value of an attribute. In this case, look for parents,
             # and check only text do not make sense, so "check_element" will be called independently for this condition

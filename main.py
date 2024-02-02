@@ -36,8 +36,12 @@ class CustomThread(threading.Thread):
     def run(self):
         driver = []
         while not self.stop:
-            driver = check_status.check_status(self.path, path_chrome_metadata, self.name, driver, iteration_wait)
-
+            try: # With this try...except we can remove many of the try...except inside check_status
+                driver = check_status.check_status(self.path, path_chrome_metadata, self.name, driver, iteration_wait)
+            except Exception:
+                time.sleep(10)
+                print("WARNING! The website " + name + " has failed. Retrying...")
+                continue
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
