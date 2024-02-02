@@ -67,7 +67,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                     # driver.quit()
 
             except Exception as e:
-                print(e)
+                print('Failed to initiate the driver...' + e)
                 time.sleep(60)
                 continue
             else:
@@ -86,7 +86,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                 try:
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
                 except Exception:
-                    print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+                    print("WARNING! The website " + website["name"] + " has failed (couldn't get the XPATH). Retrying...")
                     time.sleep(website["refresh_interval"])
                     return
                 if website["only_check_attribute"]:  # To check only the value of an attribute
@@ -98,7 +98,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
             else:
                 html = driver.page_source
         except Exception:
-            print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+            print("WARNING! The website " + website["name"] + " has failed (couldn't get the page source). Retrying...")
             time.sleep(website["refresh_interval"])
             return
 
@@ -118,7 +118,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                 except Exception:
                     # This Exception handles the case when the element cannot be obtained. The object will be retrieved
                     # again and again, so I will inform it in the command line
-                    print("WARNING! The website " + website["name"] + " has failed. Retrying...")
+                    print("WARNING! The website " + website["name"] + " has failed (couldn't get the element). Retrying...")
                     time.sleep(website["refresh_interval"])
                     return
 
