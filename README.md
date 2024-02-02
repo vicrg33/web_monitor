@@ -11,21 +11,21 @@
 In the json file...
 * **"url"**: url to be checked
 * **"element"**: element type to be checked
-* **"attrib_key"**: attribute key that identifies unequivocally "element". If you want to get an element by its text use "text"
+* **"attrib_key"**: attribute key that identifies unequivocally "element". If you want to get an element by its text use "text". If you want to search by xpath put "xpath" here and the xpath in "attrib_value", in that case the content of "element" field does not matter. If empty (this and "attrib_value") an element "element" with no attributes will be searched
 * **"attrib_value"**: attribute value that identifies unequivocally "element"
 * **"parent_number"**: if you can't identify unequivocally your element, identify a child, and indicate in this how many child-parent jumps are necessary to reach from the identified element to your desired element
-* **"refresh_interval"**: checking interval (in seconds). For elements with "javascript" set to "true", this time will be increased by 10 seconds due to Selenium issues
+* **"refresh_interval"**: checking interval (in seconds). Do not use values less than 20 to avoid problems for elements using "javascript". Also, in elements using "javascript", the "refresh_interval" will be increased by 10 seconds due to Selenium operation
 * **"name"**: identifier. MUST BE UNIQUE
 * **"active"**: true/false, to activate/deactivate the monitoring
 * **"email"**: email address to send the notification
-* **"javascript"**: true/false, true if the website require javascript
-* **"compose_body"**: true/false, true if you want to send the changes in the email body, if not only the link will be sent. Recomended false, as it provokes many errors
 * **"only_text"**: true/false, true if you want to check only the text from the selected element
 * **"all_elements"**: true/false, true if you want to check all the elements that match attrib_key-attrib_value, false if only the "idx_element" match
 * **"idx_element"**: int, the index of the element (that match attrib_key-attrib_value) that will be tracked. Will only be used if "all_elements" is false
 * **"only_check_attribute"**: true/false, to check only the value of one attribute of the selected element
 * **"attribute_to_check"**: the name of the attribute to check for changes
 * **"login_needed"**: true/false, to work with websites that require a login. If true, browser metadata will be created to store login information (when deactivated it will automatically be deleted). To monitor this type of websites you have to: i) deactivate the headless mode, ii) start the web monitor program and pause the script when the browser is opened **FOR THE WEBSITE THAT REQUIRES LOGIN**, iii) log in to the website, iv) stop the web monitor program, v) activate headless mode, and vi) all done! you can start the web monitor program normally. 
+* **"waiting_time"**: int, time to wait for the website to load. 
+* **"double_check"**: bool, the changes will be checked twice before notifying, for pages that spuriously change sometimes
 
 **EXAMPLE**
 ```sh
@@ -39,13 +39,13 @@ In the json file...
     "name": "Universidad de Leon - Convocatorias urgentes",
     "active": true,
     "email" : "patriarce15@gmail.com",
-    "javascript" : false,
-    "compose_body": true,
     "only_text": false,
     "all_elements": false,
     "idx_element": 1,
     "only_check_attribute": true,
     "attribute_to_check": "id",
-    "login_needed": false
+    "login_needed": false,
+    "waiting_time": 5,
+    "double_check": True
 },
 ```
