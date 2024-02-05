@@ -21,8 +21,7 @@ elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
 ITERATION_WAIT = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
 # TIMEOUT_DRIVER = 2 * 60 * 60 # The first digit indicates the waiting time in hours
-path_gecko_metadata = 'D:/WebMonitorMetadata/'
-
+PATH_GECKO_METADATA = 'D:/WebMonitorMetadata/'
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
 
@@ -38,7 +37,7 @@ class CustomThread(threading.Thread):
         driver = []
         # start_time = time.time()
         while not self.stop:
-            driver = check_status.check_status(self.path, path_gecko_metadata, self.name, driver, ITERATION_WAIT)
+            driver = check_status.check_status(self.path, PATH_GECKO_METADATA, self.name, driver, ITERATION_WAIT)
             # # Restart the driver every TIMEOUT_DRIVER seconds
             # if (time.time() - start_time) >= TIMEOUT_DRIVER:
             #     driver.quit()
@@ -131,11 +130,11 @@ while True:
 
     # Check if there are stored browser metadata that are not currently in the monitoring list (neither active nor
     # inactive)...
-    folders = list(set(pathlib.Path(path_gecko_metadata + 'gecko_tmp/').glob('*/')))
+    folders = list(set(pathlib.Path(PATH_GECKO_METADATA + 'gecko_tmp/').glob('*/')))
     for folder in folders:
         if folder.stem not in thread_pool_names:  # If so, remove the files
             try:
-                shutil.rmtree(path_gecko_metadata + '/gecko_tmp/' + file.stem, onerror=set_rw.set_rw)
+                shutil.rmtree(PATH_GECKO_METADATA + '/gecko_tmp/' + file.stem, onerror=set_rw.set_rw)
                 print("Removing browser metadata of '" + file.stem + "'\n")
             except Exception:
                 pass
