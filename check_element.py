@@ -49,7 +49,6 @@ def check_element(path, element, website, counter_fail, email, driver=[]):  # Th
                 # except Exception as err_buy_item:
                 #     print("Could not buy the item: " + str(err_buy_item) + "\n")
 
-
                 # Move the previous version to the "Previous versions" folder, and the new to "data" folder
                 shutil.copy(path + '/data/' + website["name"] + '.html',
                           path + '/data/Previous versions/' + website["name"] + '.html')
@@ -59,16 +58,12 @@ def check_element(path, element, website, counter_fail, email, driver=[]):  # Th
 
                 print("'" + website["name"] + "' has changed!!!\n")
                 # time.sleep(300)
-            else:  # Else, jnust notificate via console
+            else:  # Else, just notificate via console
 
                 if 'COUNTER_' + website["name"].replace(" ", "_") in globals():
-                    del globals()['COUNTER_' + website["name"]]
+                    del globals()['COUNTER_' + website["name"].replace(" ", "_")]
 
                 print("No changes for '" + website["name"] + "'\n")
+                a = 0
     else:
-        counter_fail += 1
-        if counter_fail == 10:
-            notify_me.notify_me(email, website["name"] + ' is broken :(', website["url"], 'html')  # Send the email
-            telegram_notify.telegram_notify(website["name"] + ' is broken :( Link: ' + website["url"])  # Send a Telegram message
-
-        print("The element '" + website["name"] + "' couldn't be found. Retrying\n")
+          print("The element '" + website["name"] + "' couldn't be found. Retrying\n")

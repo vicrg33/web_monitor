@@ -19,8 +19,9 @@ if platform.system() == 'Windows':
     path = 'D:/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
-iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
-path_chrome_metadata = 'D:/WebMonitorMetadata/'
+ITERATION_WAIT = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
+# TIMEOUT_DRIVER = 2 * 60 * 60 # The first digit indicates the waiting time in hours
+path_gecko_metadata = 'D:/WebMonitorMetadata/'
 
 
 # ---------------------------------- CUSTOM THREAD DEFINITION FOR CONTINUOUS MONITORING ------------------------------ #
@@ -35,8 +36,16 @@ class CustomThread(threading.Thread):
 
     def run(self):
         driver = []
+        # start_time = time.time()
         while not self.stop:
-            driver = check_status.check_status(self.path, path_chrome_metadata, self.name, driver, iteration_wait)
+            driver = check_status.check_status(self.path, path_gecko_metadata, self.name, driver, ITERATION_WAIT)
+            # # Restart the driver every TIMEOUT_DRIVER seconds
+            # if (time.time() - start_time) >= TIMEOUT_DRIVER:
+            #     driver.quit()
+            #     driver.close()
+            #     time.sleep(5) # Wait for the driver to properly close... (I don't know if this is necessary)
+            #     driver = []
+            #     start_time = time.time()
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
@@ -122,11 +131,11 @@ while True:
 
     # Check if there are stored browser metadata that are not currently in the monitoring list (neither active nor
     # inactive)...
-    folders = list(set(pathlib.Path(path_chrome_metadata + 'chrome_tmp/').glob('*/')))
+    folders = list(set(pathlib.Path(path_gecko_metadata + 'gecko_tmp/').glob('*/')))
     for folder in folders:
         if folder.stem not in thread_pool_names:  # If so, remove the files
             try:
-                shutil.rmtree(path_chrome_metadata + '/chrome_tmp/' + file.stem, onerror=set_rw.set_rw)
+                shutil.rmtree(path_gecko_metadata + '/gecko_tmp/' + file.stem, onerror=set_rw.set_rw)
                 print("Removing browser metadata of '" + file.stem + "'\n")
             except Exception:
                 pass
@@ -143,11 +152,27 @@ while True:
             thread_pool_names.append(name)
             print("New website added: '" + name + "'\n")
 
+
+    # Check if all the threads are alive, otherwise remove the crashed one(s), and re-start
+    for idx_alive in range(len(thread_pool)): # Loop through all the threads...
+        if not thread_pool[idx_alive].is_alive(): # If a thread is not alive...
+            not_alive_name = thread_pool_names[idx_alive] # Store the name
+            # Remove from thread pool
+            del thread_pool[idx_alive]
+            del thread_pool_names[idx_alive]
+            # Re-start
+            t = CustomThread(path, not_alive_name)
+            t.start()
+            thread_pool.append(t)
+            thread_pool_names.append(not_alive_name)
+            print("Thread for '" + not_alive_name + "' crashed. Restarting...\n")
+            del not_alive_name
+
     # Update variables for the next iteration
     websites_names = websites_new_names
     websites = websites_new
 
-    # Run this function every 900 s. NOTE: This is not the refreshing time for each site (that is indicated in
+    # Run this function every "iteration_wait" s. NOTE: This is not the refreshing time for each site (that is indicated in
     # config.json). This indicates how often config.json is loaded looking for changes
     # print("Checking changes in the configuration file")
-    time.sleep(iteration_wait)
+    time.sleep(ITERATION_WAIT)

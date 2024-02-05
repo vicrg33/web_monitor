@@ -46,7 +46,7 @@
 			"parent_number": 0,
 			"refresh_interval": 10,
 			"name": "Zara_B_M",
-			"active": true,
+			"active": false,
 			"email" : "vic1993victor1993@gmail.com",
 			"only_text": false,
 			"all_elements": false,

@@ -2,17 +2,20 @@ import json
 import time
 import urllib.request
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
+# from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 import re
 import check_element
 import os
 from bs4 import BeautifulSoup
 
 
-def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
+def check_status(path, path_gecko_metadata, name, driver, iteration_wait):
     # Json load and info storing
     json_info = open(path + '/config.json')
     json_data = json.load(json_info)
@@ -26,6 +29,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
     except:
         print("Website not detected. Waiting until the next load of the configuration file\n")
         time.sleep(iteration_wait * 1.5)
+        return
     email = website["email"]
     counter_fail = 0
 
@@ -35,19 +39,21 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
             try:
                 # Retrieving website
                 options = Options()
-                options.add_argument('--headless=new')
+                options.add_argument('--headless')
                 options.add_argument("--window-size=1920x1080")  # Required by the "find by XPath" functionality
-                options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                options.set_preference("dom.webdriver.enabled", False)
+                options.set_preference("useAutomationExtension", False)
                 user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
                 options.add_argument('user-agent={0}'.format(user_agent))
                 options.add_argument("--disable-gpu")
                 if website["login_needed"]:
-                    if not os.path.exists(path_chrome_metadata + '/chrome_tmp/' + website["name"]):
-                        os.mkdir(path_chrome_metadata + '/chrome_tmp/' + website["name"])
+                    if not os.path.exists(path_gecko_metadata + '/gecko_tmp/' + website["name"]):
+                        os.mkdir(path_gecko_metadata + '/gecko_tmp/' + website["name"])
                     options.add_argument(
-                        "user-data-dir=" + path_chrome_metadata + "/chrome_tmp/" + website["name"])
+                        "user-data-dir=" + path_gecko_metadata + "/gecko_tmp/" + website["name"])
                 # service = Service('chromedriver.exe', log_path=os.devnull)
-                driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
+                driver = webdriver.Firefox(options=options, service=Service(GeckoDriverManager().install()))
+                driver.implicitly_wait(90) # Set a timeout for loading the page, after 90s it will return an error
 
                 driver.get(website["url"])
                 time.sleep(website["waiting_time"] + 10)
@@ -65,10 +71,11 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                     html = driver.page_source
                     # driver.close()
                     # driver.quit()
-
             except Exception as e:
-                print('Failed to initiate the driver...' + e)
-                time.sleep(60)
+                print('Failed to initiate the driver. Retrying...')
+                print(str(e))
+                print('\n')
+                time.sleep(20)
                 continue
             else:
                 break
@@ -86,7 +93,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                 try:
                     driver_element = driver.find_element(By.XPATH, website["attrib_value"])
                 except Exception:
-                    print("WARNING! The website " + website["name"] + " has failed (couldn't get the XPATH). Retrying...")
+                    print("WARNING! The website " + website["name"] + " has failed (couldn't get the XPATH). Retrying...\n")
                     time.sleep(website["refresh_interval"])
                     return
                 if website["only_check_attribute"]:  # To check only the value of an attribute
@@ -98,7 +105,7 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
             else:
                 html = driver.page_source
         except Exception:
-            print("WARNING! The website " + website["name"] + " has failed (couldn't get the page source). Retrying...")
+            print("WARNING! The website " + website["name"] + " has failed (couldn't get the page source). Retrying...\n")
             time.sleep(website["refresh_interval"])
             return
 
@@ -118,12 +125,12 @@ def check_status(path, path_chrome_metadata, name, driver, iteration_wait):
                 except Exception:
                     # This Exception handles the case when the element cannot be obtained. The object will be retrieved
                     # again and again, so I will inform it in the command line
-                    print("WARNING! The website " + website["name"] + " has failed (couldn't get the element). Retrying...")
+                    print("WARNING! The website " + website["name"] + " has failed (couldn't get the element). Retrying...\n")
                     time.sleep(website["refresh_interval"])
                     return
 
         if website["only_check_attribute"]:  # To check only the value of an attribute. In this case, look for parents,
-            # and check only text do not make sense, so "check_element" will be called independently for this condition
+            # and check only text does not make sense, so "check_element" will be called independently for this condition
             try:  # Get the element desired attribute. This could be a bit difficult, so this nested try/Except are required
                 element = element.get(website["attribute_to_check"])
                 element = str(element)  # Turn element into a string to compare it easier with the previous version
