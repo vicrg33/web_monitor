@@ -19,7 +19,7 @@ if platform.system() == 'Windows':
     path = 'D:/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
 elif platform.system() == 'Darwin':
     path = '/Users/Vic/OneDrive - UVa/Personal/Scripts Utiles/web_monitor'
-iteration_wait = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
+ITERATION_WAIT = 300  # Time to wait between iterations of the main script (i.e., between two Json-loads)
 path_chrome_metadata = 'D:/WebMonitorMetadata/'
 
 
@@ -36,7 +36,7 @@ class CustomThread(threading.Thread):
     def run(self):
         driver = []
         while not self.stop:
-            driver = check_status.check_status(self.path, path_chrome_metadata, self.name, driver, iteration_wait)
+            driver = check_status.check_status(self.path, path_chrome_metadata, self.name, driver, ITERATION_WAIT)
 
 # --------------------------------------------------- MAIN FUNCTION -------------------------------------------------- #
 
@@ -150,4 +150,4 @@ while True:
     # Run this function every 900 s. NOTE: This is not the refreshing time for each site (that is indicated in
     # config.json). This indicates how often config.json is loaded looking for changes
     # print("Checking changes in the configuration file")
-    time.sleep(iteration_wait)
+    time.sleep(ITERATION_WAIT)
